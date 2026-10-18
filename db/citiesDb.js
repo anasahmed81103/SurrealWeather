@@ -6,6 +6,9 @@ import * as SQLite from "expo-sqlite";
  */
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
+/** How long cached weather counts as fresh. Older data is only used when offline. */
+export const CACHE_MAX_AGE_MS = 10 * 60 * 1000;
+
 /* ---------------- MOBILE: SQLite IMPLEMENTATION ---------------- */
 let db;
 if (isMobile) {
@@ -13,7 +16,10 @@ if (isMobile) {
 }
 
 async function initDbMobile() {
+    // foreign_keys ON → deleting a city also deletes its cached weather
     await db.execAsync(`
+    PRAGMA foreign_keys = ON;
+
     CREATE TABLE IF NOT EXISTS cities (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT UNIQUE,
@@ -76,7 +82,8 @@ async function saveWeatherMobile(name, weatherData) {
     );
 }
 
-async function getWeatherMobile(name) {
+// Returns cached weather if younger than maxAgeMs (pass Infinity to accept any age)
+async function getWeatherMobile(name, maxAgeMs = CACHE_MAX_AGE_MS) {
     const cityId = await getCityIdMobile(name);
     if (!cityId) return null;
 
@@ -86,9 +93,7 @@ async function getWeatherMobile(name) {
     );
     if (!result) return null;
 
-    const now = Date.now();
-    const tenMinutes = 10 * 60 * 1000;
-    if (now - result.timestamp < tenMinutes) {
+    if (Date.now() - result.timestamp < maxAgeMs) {
         return JSON.parse(result.data);
     }
     return null;
@@ -138,7 +143,8 @@ async function getCityIdWeb(name) {
 }
 
 async function getAllCitiesWeb() {
-    return memoryDb.cities;
+    // Return a sorted copy (same as mobile) so React sees a new array and re-renders
+    return [...memoryDb.cities].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 async function deleteCityWeb(name) {
@@ -159,16 +165,14 @@ async function saveWeatherWeb(name, weatherData) {
     }
 }
 
-async function getWeatherWeb(name) {
+async function getWeatherWeb(name, maxAgeMs = CACHE_MAX_AGE_MS) {
     const cityId = await getCityIdWeb(name);
     if (!cityId) return null;
 
     const result = memoryDb.weather.find((w) => w.cityId === cityId);
     if (!result) return null;
 
-    const now = Date.now();
-    const tenMinutes = 10 * 60 * 1000;
-    if (now - result.timestamp < tenMinutes) {
+    if (Date.now() - result.timestamp < maxAgeMs) {
         return result.data;
     }
     return null;
