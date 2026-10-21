@@ -5,6 +5,7 @@ import {
     getCityCoordinates,
     getAllCities,
     deleteCity,
+    setHomeCity,
     saveWeather,
     getWeather,
 } from "../db/citiesDb";
@@ -121,8 +122,33 @@ export default function useCityWeather() {
 
     /* ---------- 3. Cities ---------- */
 
-    // Switch to a saved city, or search + save a new one.
-    // Returns true on success, false if the city couldn't be found.
+    // Save (if new) and switch to a place picked from the suggestions.
+    // It already has coordinates, so no network is needed.
+    const addPlace = async (place) => {
+        try {
+            // Two different cities with the same name (Hyderabad IN / PK)?
+            // Save the second one as "Hyderabad, Pakistan" so both can exist.
+            const sameName = await getCityCoordinates(place.name);
+            const isOtherCity =
+                sameName &&
+                (Math.abs(sameName.lat - place.lat) > 0.5 || Math.abs(sameName.lng - place.lng) > 0.5);
+            const name = isOtherCity && place.country ? `${place.name}, ${place.country}` : place.name;
+
+            const saved = await getCityCoordinates(name);
+            if (!saved) {
+                await saveCity(name, place.lat, place.lng);
+                await reloadCities();
+            }
+            setCity({ name, ...(saved || { lat: place.lat, lng: place.lng }) });
+            return true;
+        } catch (err) {
+            console.error("[cities] add failed:", err);
+            return false;
+        }
+    };
+
+    // Switch to a saved city by name, or (when typed + Enter with no suggestion)
+    // search online for it. Returns true on success, false if not found.
     const selectCity = async (input) => {
         const query = input.trim();
         if (!query) return false;
@@ -140,14 +166,7 @@ export default function useCityWeather() {
                 console.warn("[cities] no results for:", query);
                 return false;
             }
-
-            // The search returns a clean name ("karachi" → "Karachi") that may already be saved
-            if (!(await getCityCoordinates(place.name))) {
-                await saveCity(place.name, place.lat, place.lng);
-                await reloadCities();
-            }
-            setCity({ name: place.name, lat: place.lat, lng: place.lng });
-            return true;
+            return addPlace(place);
         } catch (err) {
             console.error("[cities] select failed:", err);
             return false;
@@ -167,7 +186,18 @@ export default function useCityWeather() {
         }
     };
 
+    // Make a saved city the home city — the one the app opens with next time
+    const makeHome = async (name) => {
+        try {
+            await setHomeCity(name);
+            await reloadCities();
+            console.log("[cities] home city is now", name);
+        } catch (err) {
+            console.error("[cities] set home failed:", err);
+        }
+    };
+
     const isHome = Boolean(cities.find((c) => c.name === city?.name)?.isDefault);
 
-    return { city, isHome, cities, weather, status, refreshing, refresh, selectCity, removeCity };
+    return { city, isHome, cities, weather, status, refreshing, refresh, selectCity, addPlace, removeCity, makeHome };
 }

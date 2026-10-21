@@ -71,6 +71,24 @@ async function deleteCityMobile(name) {
     await db.runAsync(`DELETE FROM cities WHERE name = ?`, [name]);
 }
 
+// Small key/value store for user settings (e.g. "sound" → "on"/"off").
+// The table is created here on first use, so it works even before initDb.
+async function getSettingMobile(key, fallback) {
+    await db.execAsync(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);`);
+    const row = await db.getFirstAsync(`SELECT value FROM settings WHERE key = ?`, [key]);
+    return row ? row.value : fallback;
+}
+
+async function setSettingMobile(key, value) {
+    await db.execAsync(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);`);
+    await db.runAsync(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, [key, String(value)]);
+}
+
+// Make `name` the home city (the one that opens on start). Exactly one city is home.
+async function setHomeCityMobile(name) {
+    await db.runAsync(`UPDATE cities SET isDefault = (name = ?)`, [name]);
+}
+
 async function saveWeatherMobile(name, weatherData) {
     const cityId = await getCityIdMobile(name);
     if (!cityId) return;
@@ -151,6 +169,20 @@ async function deleteCityWeb(name) {
     memoryDb.cities = memoryDb.cities.filter((c) => c.name !== name);
 }
 
+const memorySettings = {};
+
+async function getSettingWeb(key, fallback) {
+    return key in memorySettings ? memorySettings[key] : fallback;
+}
+
+async function setSettingWeb(key, value) {
+    memorySettings[key] = String(value);
+}
+
+async function setHomeCityWeb(name) {
+    memoryDb.cities.forEach((c) => { c.isDefault = c.name === name; });
+}
+
 async function saveWeatherWeb(name, weatherData) {
     const cityId = await getCityIdWeb(name);
     if (!cityId) return;
@@ -195,6 +227,9 @@ export const getCityCoordinates = isMobile
 export const getCityId = isMobile ? getCityIdMobile : getCityIdWeb;
 export const getAllCities = isMobile ? getAllCitiesMobile : getAllCitiesWeb;
 export const deleteCity = isMobile ? deleteCityMobile : deleteCityWeb;
+export const setHomeCity = isMobile ? setHomeCityMobile : setHomeCityWeb;
+export const getSetting = isMobile ? getSettingMobile : getSettingWeb;
+export const setSetting = isMobile ? setSettingMobile : setSettingWeb;
 export const saveWeather = isMobile ? saveWeatherMobile : saveWeatherWeb;
 export const getWeather = isMobile ? getWeatherMobile : getWeatherWeb;
 export const clearStaleWeather = isMobile

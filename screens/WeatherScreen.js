@@ -5,7 +5,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import useCityWeather from "../hooks/useCityWeather";
 import useMinuteTick from "../hooks/useMinuteTick";
+import useSoundSetting from "../hooks/useSoundSetting";
+import useAmbientSound from "../hooks/useAmbientSound";
 import { cityNow, deviceOffsetSeconds, getDayPhase, parseCityTime } from "../utils/time";
+import { getAmbience } from "../utils/ambience";
 
 import WeatherScene from "../components/scene/WeatherScene";
 import CityHeader from "../components/CityHeader";
@@ -37,7 +40,7 @@ export default function WeatherScreen() {
     const insets = useSafeAreaInsets();
     const nowMs = useMinuteTick();
     const [pickerOpen, setPickerOpen] = useState(false);
-    const { city, isHome, cities, weather, status, refreshing, refresh, selectCity, removeCity } =
+    const { city, isHome, cities, weather, status, refreshing, refresh, selectCity, addPlace, removeCity, makeHome } =
         useCityWeather();
 
     const ready = status === "ready" && weather;
@@ -47,17 +50,25 @@ export default function WeatherScreen() {
     const phase = weather
         ? getDayPhase(localTime, parseCityTime(weather.daily.sunrise[0]), parseCityTime(weather.daily.sunset[0]))
         : "night";
-    const sceneCode = weather?.current.weather_code ?? 3; // overcast while nothing is loaded
+    const sceneCode = DEBUG_SCENE?.code ?? weather?.current.weather_code ?? 3; // overcast while nothing is loaded
+    const scenePhase = DEBUG_SCENE?.phase ?? phase;
+
+    // A short ambient "sound moment" each time new weather loads
+    // (app open, city change, pull-to-refresh) — `weather` is the trigger
+    const [soundOn, toggleSound] = useSoundSetting();
+    useAmbientSound(ready ? getAmbience(sceneCode, scenePhase) : null, soundOn, ready ? weather : null);
 
     return (
         <View style={styles.screen}>
-            <WeatherScene code={DEBUG_SCENE?.code ?? sceneCode} phase={DEBUG_SCENE?.phase ?? phase} />
+            <WeatherScene code={sceneCode} phase={scenePhase} />
 
             <CityHeader
                 cityName={city?.name ?? "Locating…"}
                 isHome={isHome}
                 localTime={localTime}
                 onPress={() => setPickerOpen(true)}
+                soundOn={soundOn}
+                onToggleSound={toggleSound}
             />
 
             {ready ? (
@@ -72,8 +83,8 @@ export default function WeatherScreen() {
                     <HourlyForecast hourly={weather.hourly} />
                     <DailyForecast daily={weather.daily} />
                     <WeatherDetails current={weather.current} daily={weather.daily} />
-                    {/* Attribution required by Open-Meteo's free licence (CC BY 4.0) */}
-                    <Text style={styles.credit}>Weather data by Open-Meteo.com</Text>
+                    {/* Attribution required by the free licences (CC BY 4.0) */}
+                    <Text style={styles.credit}>Weather data by Open-Meteo.com · City data by GeoNames</Text>
                 </ScrollView>
             ) : (
                 <StatusMessage status={status} onRetry={refresh} />
@@ -85,7 +96,9 @@ export default function WeatherScreen() {
                 currentCity={city?.name}
                 onClose={() => setPickerOpen(false)}
                 onSelect={selectCity}
+                onAddPlace={addPlace}
                 onRemove={removeCity}
+                onMakeHome={makeHome}
             />
 
             <StatusBar style="light" />

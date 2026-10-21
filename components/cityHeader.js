@@ -5,34 +5,48 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatClock, formatDate } from "../utils/time";
 
 /* ------------------------------------------------------------------
- * CityHeader — city name (tap to open the city picker) and the city's
- * local date + time. Sits right under the phone's status bar using
- * safe-area insets, transparent so the sky shows through.
+ * CityHeader — city name (tap to open the city picker), the city's
+ * local date + time, and a sound on/off button on the right.
+ * Sits right under the phone's status bar using safe-area insets,
+ * transparent so the sky shows through.
  * ------------------------------------------------------------------ */
 
-export default function CityHeader({ cityName, isHome, localTime, onPress }) {
+export default function CityHeader({ cityName, isHome, localTime, onPress, soundOn, onToggleSound }) {
     const insets = useSafeAreaInsets();
 
     return (
         <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
-            <TouchableOpacity style={styles.cityButton} onPress={onPress} activeOpacity={0.7}>
-                <MaterialCommunityIcons name={isHome ? "home-map-marker" : "map-marker"} size={20} color="#fff" />
-                <Text style={styles.city} numberOfLines={1}>{cityName}</Text>
-                <MaterialCommunityIcons name="chevron-down" size={22} color="rgba(255,255,255,0.8)" />
-            </TouchableOpacity>
+            <View style={styles.left}>
+                <TouchableOpacity style={styles.cityButton} onPress={onPress} activeOpacity={0.7}>
+                    <MaterialCommunityIcons name={isHome ? "home-map-marker" : "map-marker"} size={20} color="#fff" />
+                    <Text style={styles.city} numberOfLines={1}>{cityName}</Text>
+                    <MaterialCommunityIcons name="chevron-down" size={22} color="rgba(255,255,255,0.8)" />
+                </TouchableOpacity>
 
-            <Text style={styles.date}>
-                {formatDate(localTime)}  ·  {formatClock(localTime)}
-            </Text>
+                <Text style={styles.date}>
+                    {formatDate(localTime)}  ·  {formatClock(localTime)}
+                </Text>
+            </View>
+
+            <TouchableOpacity style={styles.soundButton} onPress={onToggleSound} hitSlop={10} activeOpacity={0.7}>
+                <MaterialCommunityIcons
+                    name={soundOn ? "volume-high" : "volume-off"}
+                    size={22}
+                    color={soundOn ? "#fff" : "rgba(255,255,255,0.55)"}
+                />
+            </TouchableOpacity>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     header: {
+        flexDirection: "row",
+        alignItems: "flex-start",
         paddingHorizontal: 20,
         paddingBottom: 8,
     },
+    left: { flex: 1 },
     cityButton: {
         flexDirection: "row",
         alignItems: "center",
@@ -54,5 +68,14 @@ const styles = StyleSheet.create({
         marginLeft: 26,
         fontSize: 14,
         color: "rgba(255,255,255,0.8)",
+    },
+    soundButton: {
+        marginTop: 4,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(255,255,255,0.12)",
     },
 });
