@@ -34,13 +34,22 @@ built with simple, light code.
 ```
 App.js                  # providers only
 screens/                # full screens (layout, no API calls)
-hooks/                  # state + data logic (useCityWeather)
+hooks/                  # state + reusable logic (useCityWeather, suggestions, draggable sheet)
 components/             # UI pieces (header, cards, picker)
 components/scene/       # animated weather background layers
 services/               # API calls (http, weatherApi, geocodingApi)
 db/                     # local storage
-utils/                  # pure helpers (weather codes, time formatting)
+utils/                  # pure helpers (weather codes, time, offline city search)
+data/                   # bundled data — worldCities.js is GENERATED, don't edit by hand
+scripts/                # dev scripts (buildWorldCities.js regenerates data/worldCities.js)
 ```
+
+Sounds: CC0 loops in `assets/sounds/` (credits in `CREDITS.md`, ~50 s, AAC, loudness-matched).
+`utils/ambience.js` picks the sound, `hooks/useAmbientSound.js` plays it. Keep the expo-audio
+plugin's microphone/background options OFF in app.json — the app never records.
+
+City search: offline list first (`utils/citySearch.js`, typo-tolerant), Open-Meteo online search
+only as a debounced backup for small towns.
 
 ## Running
 

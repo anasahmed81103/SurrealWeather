@@ -5,7 +5,8 @@ import { fetchJson, withTimeout } from "./http";
  * GEOCODING + LOCATION — all free, no API keys, no billing.
  *
  *  getDeviceCoords()           → phone GPS (never hangs, returns null on failure)
- *  searchCity(name)            → Open-Meteo Geocoding API   (name → coords)
+ *  searchCities(name)          → Open-Meteo Geocoding API   (name → places)
+ *  searchCity(name)            → best single match of the above
  *  getCityNameFromCoords(...)  → phone's built-in geocoder   (coords → name),
  *                                falls back to BigDataCloud's free client
  *                                endpoint (used on web/PC, where the native
@@ -49,27 +50,46 @@ export async function getDeviceCoords() {
 }
 
 /**
- * Find a city by name.
- * @returns {Promise<{ name, lat, lng, country } | null>} null if nothing matched
+ * Search cities by name (online). Used as a backup for small towns that
+ * aren't in the offline list (utils/citySearch.js).
+ * @returns {Promise<Array<{ name, region, country, lat, lng }>>} biggest first
  */
-export async function searchCity(query) {
+export async function searchCities(query, limit = 6) {
     // Open-Meteo matches on the place name only, so drop anything after a comma
     // ("Paris, France" → "Paris")
     const name = query.split(",")[0].trim();
-    if (!name) return null;
+    if (name.length < 2) return [];
 
+    // Ask for more than we need, then clean up: the raw list has lots of tiny villages
     const data = await fetchJson(
-        `${OPEN_METEO_GEOCODING_URL}?name=${encodeURIComponent(name)}&count=1&language=en&format=json`
+        `${OPEN_METEO_GEOCODING_URL}?name=${encodeURIComponent(name)}&count=20&language=en&format=json`
     );
-    const place = data.results?.[0];
-    if (!place) return null;
+    const all = data.results || [];
+    const populated = all.filter((p) => p.population > 0);
 
-    return {
-        name: place.name, // properly capitalised name, e.g. "karachi" → "Karachi"
-        lat: place.latitude,
-        lng: place.longitude,
-        country: place.country,
-    };
+    const seen = new Set();
+    return (populated.length ? populated : all) // keep villages only if nothing bigger exists
+        .sort((a, b) => (b.population || 0) - (a.population || 0))
+        .filter((p) => {
+            const key = `${p.name}|${p.admin1}|${p.country_code}`; // drop duplicates
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        })
+        .slice(0, limit)
+        .map((p) => ({
+            name: p.name,
+            region: p.admin1 || "",
+            country: p.country || "",
+            lat: p.latitude,
+            lng: p.longitude,
+        }));
+}
+
+/** Best single match for a name, or null. */
+export async function searchCity(query) {
+    const [best] = await searchCities(query, 1);
+    return best || null;
 }
 
 /**

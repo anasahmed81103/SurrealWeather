@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
     ActivityIndicator,
+    Animated,
     Modal,
     Pressable,
     ScrollView,
@@ -12,93 +13,125 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import useDraggableSheet from "../hooks/useDraggableSheet";
+import useCitySuggestions from "../hooks/useCitySuggestions";
+import CityRow from "./CityRow";
 
 /* ------------------------------------------------------------------
- * CityPicker — bottom sheet to switch, add and remove cities.
- * The search box sits at the top so the keyboard never covers it.
- * Pure UI: the actual work is done by onSelect / onRemove (from
- * useCityWeather).
+ * CityPicker — draggable bottom sheet to switch, add and remove cities.
+ *
+ *  - Drag the handle/title up for more room, down to close.
+ *  - Empty search box → your saved cities (🏠 button sets the home city).
+ *  - Typing → world-city suggestions (tap one to add it).
+ *
+ * Pure UI: the real work is done by onSelect / onAddPlace / onRemove
+ * (from useCityWeather).
  * ------------------------------------------------------------------ */
 
-export default function CityPicker({ visible, cities, currentCity, onClose, onSelect, onRemove }) {
+export default function CityPicker({ visible, cities, currentCity, onClose, onSelect, onAddPlace, onRemove, onMakeHome }) {
     const insets = useSafeAreaInsets();
     const [query, setQuery] = useState("");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
 
-    const close = () => {
+    const handleClosed = () => {
         setQuery("");
         setError("");
         onClose();
     };
+    const sheet = useDraggableSheet({ visible, onClose: handleClosed });
+    const { suggestions, searching } = useCitySuggestions(query);
+    const typing = query.trim().length > 0;
 
-    // Used for both tapping a saved city and searching a new one
-    const pick = async (name) => {
-        if (!name.trim() || busy) return;
+    // Runs an add/select action with a spinner; closes the sheet on success
+    const run = async (action, failMessage) => {
+        if (busy) return;
         setBusy(true);
         setError("");
-        const found = await onSelect(name);
+        const ok = await action();
         setBusy(false);
-        if (found) close();
-        else setError(`Couldn't find "${name.trim()}". Check the spelling and try again.`);
+        if (ok) sheet.close();
+        else setError(failMessage);
+    };
+
+    const pickSaved = (name) => run(() => onSelect(name), `Couldn't open ${name}.`);
+    const pickPlace = (place) => run(() => onAddPlace(place), `Couldn't add ${place.name}.`);
+
+    // Enter key: take the top suggestion, or fall back to an online search
+    const submit = () => {
+        if (!typing) return;
+        if (suggestions[0]) pickPlace(suggestions[0]);
+        else run(() => onSelect(query), `Couldn't find "${query.trim()}". Check the spelling.`);
     };
 
     return (
-        <Modal visible={visible} transparent animationType="slide" statusBarTranslucent navigationBarTranslucent onRequestClose={close}>
+        <Modal visible={visible} transparent animationType="fade" statusBarTranslucent navigationBarTranslucent onRequestClose={sheet.close}>
             <View style={styles.backdrop}>
-                {/* Tap outside the sheet to close */}
-                <Pressable style={StyleSheet.absoluteFill} onPress={close} />
+                <Pressable style={StyleSheet.absoluteFill} onPress={sheet.close} />
 
-                <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
-                    <View style={styles.handle} />
-                    <Text style={styles.title}>Cities</Text>
+                <Animated.View style={[styles.sheet, { height: sheet.sheetHeight, paddingBottom: insets.bottom + 8 }]}>
+                    {/* Drag area */}
+                    <View {...sheet.panHandlers} style={styles.dragArea}>
+                        <View style={styles.handle} />
+                        <Text style={styles.title}>Cities</Text>
+                    </View>
 
                     <View style={styles.search}>
                         <MaterialCommunityIcons name="magnify" size={20} color="rgba(255,255,255,0.6)" />
                         <TextInput
                             value={query}
-                            onChangeText={setQuery}
-                            placeholder="Add a city…"
+                            onChangeText={(text) => { setQuery(text); setError(""); }}
+                            onFocus={sheet.expand} // more room for suggestions + keyboard
+                            placeholder="Search any city…"
                             placeholderTextColor="rgba(255,255,255,0.45)"
                             style={styles.input}
+                            autoCorrect={false}
                             returnKeyType="search"
-                            onSubmitEditing={() => pick(query)}
+                            onSubmitEditing={submit}
                         />
-                        {busy ? (
+                        {busy || searching ? (
                             <ActivityIndicator color="#fff" />
-                        ) : (
-                            <TouchableOpacity onPress={() => pick(query)} hitSlop={10}>
-                                <MaterialCommunityIcons name="plus-circle" size={26} color="#7DD3FC" />
+                        ) : typing ? (
+                            <TouchableOpacity onPress={() => setQuery("")} hitSlop={10}>
+                                <MaterialCommunityIcons name="close-circle" size={20} color="rgba(255,255,255,0.6)" />
                             </TouchableOpacity>
-                        )}
+                        ) : null}
                     </View>
                     {!!error && <Text style={styles.error}>{error}</Text>}
 
                     <ScrollView style={styles.list} keyboardShouldPersistTaps="handled">
-                        {cities.map((c) => {
-                            const active = c.name === currentCity;
-                            return (
-                                <View key={c.name} style={[styles.row, active && styles.activeRow]}>
-                                    <TouchableOpacity style={styles.rowMain} onPress={() => pick(c.name)}>
-                                        <MaterialCommunityIcons
-                                            name={c.isDefault ? "home-map-marker" : "map-marker-outline"}
-                                            size={20}
-                                            color={active ? "#7DD3FC" : "rgba(255,255,255,0.7)"}
-                                        />
-                                        <Text style={[styles.cityName, active && styles.activeText]}>{c.name}</Text>
-                                    </TouchableOpacity>
-
-                                    {/* Home city can't be removed */}
-                                    {!c.isDefault && (
-                                        <TouchableOpacity onPress={() => onRemove(c.name)} hitSlop={10}>
-                                            <MaterialCommunityIcons name="trash-can-outline" size={20} color="#F87171" />
-                                        </TouchableOpacity>
-                                    )}
-                                </View>
-                            );
-                        })}
+                        {typing ? (
+                            <>
+                                {suggestions.map((p) => (
+                                    <CityRow
+                                        key={`${p.name}|${p.lat}|${p.lng}`}
+                                        icon="map-marker-plus-outline"
+                                        title={p.name}
+                                        subtitle={[p.region, p.country].filter(Boolean).join(", ")}
+                                        onPress={() => pickPlace(p)}
+                                    />
+                                ))}
+                                {!suggestions.length && !searching && (
+                                    <Text style={styles.hint}>No matches yet — press Enter to search online.</Text>
+                                )}
+                            </>
+                        ) : (
+                            cities.map((c) => (
+                                <CityRow
+                                    key={c.name}
+                                    icon={c.isDefault ? "home-map-marker" : "map-marker-outline"}
+                                    title={c.name}
+                                    subtitle={c.isDefault ? "Home · opens on start" : ""}
+                                    active={c.name === currentCity}
+                                    home={Boolean(c.isDefault)}
+                                    onPress={() => pickSaved(c.name)}
+                                    onMakeHome={() => onMakeHome(c.name)}
+                                    onRemove={c.isDefault ? undefined : () => onRemove(c.name)} // home can't be removed
+                                />
+                            ))
+                        )}
                     </ScrollView>
-                </View>
+                </Animated.View>
             </View>
         </Modal>
     );
@@ -107,22 +140,22 @@ export default function CityPicker({ visible, cities, currentCity, onClose, onSe
 const styles = StyleSheet.create({
     backdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" },
     sheet: {
-        maxHeight: "80%",
         backgroundColor: "#111a2e",
         borderTopLeftRadius: 28,
         borderTopRightRadius: 28,
         paddingHorizontal: 20,
-        paddingTop: 10,
+        overflow: "hidden",
     },
+    dragArea: { paddingTop: 10, paddingBottom: 14 }, // big, easy-to-grab target
     handle: {
         alignSelf: "center",
-        width: 40,
+        width: 44,
         height: 5,
         borderRadius: 3,
-        backgroundColor: "rgba(255,255,255,0.25)",
+        backgroundColor: "rgba(255,255,255,0.3)",
         marginBottom: 12,
     },
-    title: { fontSize: 22, fontWeight: "700", color: "#fff", marginBottom: 14 },
+    title: { fontSize: 22, fontWeight: "700", color: "#fff" },
     search: {
         flexDirection: "row",
         alignItems: "center",
@@ -133,15 +166,6 @@ const styles = StyleSheet.create({
     },
     input: { flex: 1, marginHorizontal: 8, fontSize: 16, color: "#fff" },
     error: { marginTop: 8, fontSize: 13, color: "#FCA5A5" },
-    list: { marginTop: 12 },
-    row: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 12,
-        borderRadius: 12,
-    },
-    activeRow: { backgroundColor: "rgba(125,211,252,0.1)" },
-    rowMain: { flex: 1, flexDirection: "row", alignItems: "center", paddingVertical: 14 },
-    cityName: { marginLeft: 10, fontSize: 17, color: "#fff" },
-    activeText: { fontWeight: "600", color: "#7DD3FC" },
+    list: { flex: 1, marginTop: 10 },
+    hint: { marginTop: 16, textAlign: "center", fontSize: 14, color: "rgba(255,255,255,0.55)" },
 });
