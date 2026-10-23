@@ -2,7 +2,7 @@
   "expo": {
     "name": "Surreal Weather",
     "slug": "surreal-weather",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -43,7 +43,31 @@
           "enableBackgroundPlayback": false
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "react-native-android-widget",
+        {
+          "fonts": [
+            "./node_modules/@expo-google-fonts/outfit/200ExtraLight/Outfit_200ExtraLight.ttf",
+            "./node_modules/@expo-google-fonts/outfit/300Light/Outfit_300Light.ttf",
+            "./node_modules/@expo-google-fonts/outfit/400Regular/Outfit_400Regular.ttf",
+            "./node_modules/@expo-google-fonts/outfit/500Medium/Outfit_500Medium.ttf"
+          ],
+          "widgets": [
+            {
+              "name": "Weather",
+              "label": "Surreal Weather",
+              "description": "Weather in your home city",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ]
     ],
     "extra": {
       "eas": {

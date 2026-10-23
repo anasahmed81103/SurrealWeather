@@ -24,11 +24,14 @@ const CITY_CODES = new Set([
 ]);
 
 /**
- * Ask for permission and get the phone's position.
+ * Get the phone's position. With ask = false it only uses permission the user
+ * already gave (no popup) — used for the quiet "did you move?" check on each open.
  * @returns {Promise<{ lat, lng } | null>} null if denied / unavailable
  */
-export async function getDeviceCoords() {
-    const { status } = await Location.requestForegroundPermissionsAsync();
+export async function getDeviceCoords({ ask = true } = {}) {
+    const { status } = ask
+        ? await Location.requestForegroundPermissionsAsync()
+        : await Location.getForegroundPermissionsAsync();
     if (status !== "granted") {
         console.warn("[location] permission denied");
         return null;
