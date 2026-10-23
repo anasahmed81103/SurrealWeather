@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "surreal-weather",
+    "name": "Surreal Weather",
     "slug": "surreal-weather",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,8 +12,12 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#0E0C3F"
+      },
+      "permissions": [
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.anas.surrealweather"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -26,7 +30,7 @@
         {
           "image": "./assets/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#0E0C3F",
           "imageWidth": 200
         }
       ],
@@ -40,6 +44,11 @@
         }
       ],
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5a001121-6457-4fc2-ae34-ebffbc25892f"
+      }
+    }
   }
 }
