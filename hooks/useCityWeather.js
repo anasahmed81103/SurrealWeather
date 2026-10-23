@@ -10,12 +10,15 @@ import {
     getWeather,
 } from "../db/citiesDb";
 import { fetchWeather, isValidWeather } from "../services/weatherApi";
-import { searchCity, getCityNameFromCoords, getDeviceCoords } from "../services/geocodingApi";
+import { searchCity } from "../services/geocodingApi";
+import { locateMe, updateHomeIfMoved } from "./homeLocation";
+import { updateWidget } from "../widgets/updateWidget";
 
 /* ------------------------------------------------------------------
  * useCityWeather — all app state + data logic lives here.
  *
- *  1. On start: load the saved home city, or detect it once via GPS.
+ *  1. On start: load the saved home city (or detect it via GPS on first
+ *     launch), then quietly check if the phone moved to another city.
  *  2. Whenever the city changes: load weather (cache first, then network,
  *     then any old cached copy if offline).
  *  3. Manage the saved cities list (select / add / remove).
@@ -49,14 +52,22 @@ export default function useCityWeather() {
                     console.log("[init] loaded saved city:", home.name);
                     setCities(saved);
                     setCity({ name: home.name, lat: home.lat, lng: home.lng });
+
+                    // In the background: moved to another city? Then it becomes home,
+                    // and we switch to it (unless the user already opened another city).
+                    const moved = await updateHomeIfMoved(home);
+                    if (moved) {
+                        await reloadCities();
+                        setCity((current) => (current?.name === home.name ? moved : current));
+                        updateWidget();
+                    }
                     return;
                 }
 
-                // First launch: detect the user's city once and save it as home
+                // First launch: detect the user's city (asks for permission) and save it as home
                 let home = FALLBACK_CITY;
                 try {
-                    const pos = await getDeviceCoords();
-                    if (pos) home = { name: await getCityNameFromCoords(pos.lat, pos.lng), ...pos };
+                    home = (await locateMe(true)) || FALLBACK_CITY;
                 } catch (err) {
                     console.error("[init] location error:", err);
                 }
@@ -93,6 +104,7 @@ export default function useCityWeather() {
             setWeather(data);
             setStatus("ready");
             await saveWeather(city.name, data);
+            updateWidget(); // the widget redraws from the cache we just filled
         } catch (err) {
             console.error("[weather] fetch error:", err.message);
 
@@ -192,6 +204,7 @@ export default function useCityWeather() {
             await setHomeCity(name);
             await reloadCities();
             console.log("[cities] home city is now", name);
+            updateWidget();
         } catch (err) {
             console.error("[cities] set home failed:", err);
         }

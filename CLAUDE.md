@@ -38,6 +38,7 @@ hooks/                  # state + reusable logic (useCityWeather, suggestions, d
 components/             # UI pieces (header, cards, picker) + theme.js (fonts, colours)
 components/details/     # detail tiles (sun arc, wind, gauges, moon)
 components/scene/       # animated weather background layers (SVG + Animated)
+widgets/                # Android home-screen widget (layout, data, task handler, updateWidget)
 services/               # API calls (http, weatherApi, geocodingApi)
 db/                     # local storage
 utils/                  # pure helpers (weather codes, time, offline city search)
@@ -59,6 +60,12 @@ only as a debounced backup for small towns.
 
 `npx expo start` → scan the QR code with Expo Go (SDK 57). `npx expo start -c` clears cache.
 Check config/deps with `npx expo-doctor`.
+
+Android widget (`react-native-android-widget`, config in app.json) needs a development build
+(`npx expo run:android` or EAS) — Expo Go skips it silently. It always shows the **home city**,
+reads the same SQLite cache as the app, and the app calls `updateWidget()` after saving weather.
+The home city follows the phone: `hooks/homeLocation.js` re-checks location on each open
+(no permission popup after the first launch).
 
 - Use `react-native-safe-area-context` (not React Native's deprecated `SafeAreaView`).
 - Animations: React Native `Animated` with `useNativeDriver: true` (see `components/scene/useLoop.js`).
