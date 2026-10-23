@@ -46,7 +46,10 @@ scripts/                # dev scripts (buildWorldCities.js regenerates data/worl
 ```
 
 Sounds: CC0 loops in `assets/sounds/` (credits in `CREDITS.md`, ~50 s, AAC, loudness-matched).
-`utils/ambience.js` picks the sound, `hooks/useAmbientSound.js` plays it. Keep the expo-audio
+`utils/ambience.js` picks the sound (and a soft tune from `assets/music/` in serene moments:
+rain, dawn, dusk, late night), `hooks/useAmbientSound.js` plays both as one short moment using
+two `hooks/useFadingPlayer.js` players. Audio format: AAC `.m4a`, loudness-matched to -20 LUFS.
+Original audio files go in `raw-audio/` (git-ignored). Keep the expo-audio
 plugin's microphone/background options OFF in app.json — the app never records.
 
 City search: offline list first (`utils/citySearch.js`, typo-tolerant), Open-Meteo online search

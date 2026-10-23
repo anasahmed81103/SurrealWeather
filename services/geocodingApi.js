@@ -16,6 +16,13 @@ import { fetchJson, withTimeout } from "./http";
 const OPEN_METEO_GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 const BIGDATACLOUD_REVERSE_URL = "https://api.bigdatacloud.net/data/reverse-geocode-client";
 
+// GeoNames feature codes that are real towns/cities (PPL = "populated place").
+// Everything else is dropped: countries (PCLI), regions (ADM1…), city districts (PPLX),
+// abandoned/historical places (PPLQ, PPLH, PPLW), mountains, airports, etc.
+const CITY_CODES = new Set([
+    "PPL", "PPLA", "PPLA2", "PPLA3", "PPLA4", "PPLA5", "PPLC", "PPLG", "PPLL", "PPLS", "PPLF", "PPLR",
+]);
+
 /**
  * Ask for permission and get the phone's position.
  * @returns {Promise<{ lat, lng } | null>} null if denied / unavailable
@@ -64,7 +71,7 @@ export async function searchCities(query, limit = 6) {
     const data = await fetchJson(
         `${OPEN_METEO_GEOCODING_URL}?name=${encodeURIComponent(name)}&count=20&language=en&format=json`
     );
-    const all = data.results || [];
+    const all = (data.results || []).filter((p) => CITY_CODES.has(p.feature_code)); // cities only
     const populated = all.filter((p) => p.population > 0);
 
     const seen = new Set();

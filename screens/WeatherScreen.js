@@ -9,7 +9,7 @@ import useMinuteTick from "../hooks/useMinuteTick";
 import useSoundSetting from "../hooks/useSoundSetting";
 import useAmbientSound from "../hooks/useAmbientSound";
 import { cityNow, deviceOffsetSeconds, getDayPhase, parseCityTime } from "../utils/time";
-import { getAmbience } from "../utils/ambience";
+import { getAmbience, getMusic } from "../utils/ambience";
 import { getMoonPhase } from "../utils/moonPhase";
 
 import WeatherScene from "../components/scene/WeatherScene";
@@ -66,7 +66,12 @@ export default function WeatherScreen() {
     // A short ambient "sound moment" each time new weather loads
     // (app open, city change, pull-to-refresh) — `weather` is the trigger
     const [soundOn, toggleSound] = useSoundSetting();
-    useAmbientSound(ready ? getAmbience(sceneCode, scenePhase) : null, soundOn, ready ? weather : null);
+    useAmbientSound(
+        ready ? getAmbience(sceneCode, scenePhase) : null,
+        ready ? getMusic(sceneCode, scenePhase, localTime.getUTCHours()) : null, // soft tune in serene moments
+        soundOn,
+        ready ? weather : null
+    );
 
     // Scroll position drives the hero fade and the sky parallax (all on the native thread)
     const scrollY = useRef(new Animated.Value(0)).current;
