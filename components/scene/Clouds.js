@@ -1,77 +1,92 @@
 import React, { useMemo } from "react";
 import { Animated, StyleSheet, View, useWindowDimensions } from "react-native";
+import Svg, { Circle, Defs, G, LinearGradient, Rect, Stop } from "react-native-svg";
 import useLoop, { rand } from "./useLoop";
 
 /* ------------------------------------------------------------------
- * Clouds — puffy clouds (built from overlapping circles) drifting
- * slowly across the sky at different sizes, heights and speeds.
+ * Clouds — shaded puffy clouds drifting across the sky in two layers:
+ *   far:  small, faint, slow
+ *   near: big, solid, faster
+ * The speed difference gives a sense of depth (parallax).
  * ------------------------------------------------------------------ */
 
-/** One cloud shape. All parts are sized relative to `size`. */
-function CloudShape({ size, color }) {
-    const part = (w, left, top) => ({
-        position: "absolute",
-        width: size * w,
-        height: size * w,
-        borderRadius: (size * w) / 2,
-        left: size * left,
-        top: size * top,
-        backgroundColor: color,
-    });
+const LAYERS = {
+    far: { size: [90, 150], opacity: [0.3, 0.5], duration: [110000, 170000], top: [0, 0.18] },
+    near: { size: [180, 300], opacity: [0.6, 0.9], duration: [55000, 95000], top: [0.02, 0.3] },
+};
 
+/** One cloud drawn in a 200 × 120 box, shaded top → bottom */
+function CloudShape({ size, colors, id }) {
     return (
-        <View style={{ width: size, height: size * 0.6 }}>
-            <View style={part(0.4, 0.06, 0.15)} />
-            <View style={part(0.55, 0.28, 0)} />
-            <View style={part(0.36, 0.58, 0.22)} />
-            {/* flat base so the bottom looks like a cloud, not bubbles */}
-            <View
-                style={{
-                    position: "absolute",
-                    left: size * 0.05,
-                    bottom: 0,
-                    width: size * 0.9,
-                    height: size * 0.22,
-                    borderRadius: size * 0.11,
-                    backgroundColor: color,
-                }}
-            />
-        </View>
+        <Svg width={size} height={size * 0.6} viewBox="0 0 200 120">
+            <Defs>
+                <LinearGradient id={id} x1="0" y1="0" x2="0" y2="120" gradientUnits="userSpaceOnUse">
+                    <Stop offset="0.2" stopColor={colors[0]} />
+                    <Stop offset="1" stopColor={colors[1]} />
+                </LinearGradient>
+            </Defs>
+            <G fill={`url(#${id})`}>
+                <Circle cx="62" cy="68" r="36" />
+                <Circle cx="102" cy="50" r="46" />
+                <Circle cx="146" cy="70" r="32" />
+                <Circle cx="36" cy="86" r="22" />
+                <Circle cx="170" cy="88" r="20" />
+                <Rect x="30" y="72" width="145" height="38" rx="19" />
+            </G>
+        </Svg>
     );
 }
 
-function Cloud({ index, count, color, width, height }) {
+function Cloud({ id, layer, index, count, colors, width, height }) {
+    const L = LAYERS[layer];
     const cfg = useMemo(() => ({
-        size: rand(150, 270),
-        top: rand(0, 0.26) * height, // upper sky only
-        duration: rand(50000, 95000),
-        offset: index / count + rand(0, 0.1), // spread clouds out across the sky
-        opacity: rand(0.4, 0.75), // see-through enough to keep text readable
-    }), [index, count, height]);
+        size: rand(...L.size),
+        top: rand(...L.top) * height,
+        duration: rand(...L.duration),
+        offset: index / count + rand(0, 0.08), // spread clouds out across the sky
+        opacity: rand(...L.opacity),
+    }), [layer, index, count, height]);
 
     const p = useLoop(cfg.duration, cfg.offset);
     const translateX = p.interpolate({ inputRange: [0, 1], outputRange: [-cfg.size, width] });
 
     return (
         <Animated.View
-            // Composite the cloud as one image so overlapping puffs don't show darker seams
+            // Composite the cloud as one image so the overlapping puffs don't show seams
+            // and cache it as a bitmap, so moving it is cheap (only the transform animates)
             needsOffscreenAlphaCompositing
             renderToHardwareTextureAndroid
+            shouldRasterizeIOS
             style={[styles.cloud, { top: cfg.top, opacity: cfg.opacity, transform: [{ translateX }] }]}
         >
-            <CloudShape size={cfg.size} color={color} />
+            <CloudShape size={cfg.size} colors={colors} id={id} />
         </Animated.View>
     );
 }
 
-export default function Clouds({ count, color }) {
+export default function Clouds({ count, colors }) {
     const { width, height } = useWindowDimensions();
+    const farCount = Math.ceil(count / 2);
+    const nearCount = count - farCount;
+
+    const layer = (name, n) =>
+        Array.from({ length: n }, (_, i) => (
+            <Cloud
+                key={`${name}${i}`}
+                id={`cloud-${name}-${i}`}
+                layer={name}
+                index={i}
+                count={n}
+                colors={colors}
+                width={width}
+                height={height}
+            />
+        ));
 
     return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            {Array.from({ length: count }, (_, i) => (
-                <Cloud key={i} index={i} count={count} color={color} width={width} height={height} />
-            ))}
+            {layer("far", farCount)}
+            {layer("near", nearCount)}
         </View>
     );
 }

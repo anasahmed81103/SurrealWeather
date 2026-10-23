@@ -12,7 +12,9 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import * as Haptics from "expo-haptics";
+import { fonts } from "./theme";
 import useDraggableSheet from "../hooks/useDraggableSheet";
 import useCitySuggestions from "../hooks/useCitySuggestions";
 import CityRow from "./CityRow";
@@ -50,8 +52,13 @@ export default function CityPicker({ visible, cities, currentCity, onClose, onSe
         setError("");
         const ok = await action();
         setBusy(false);
-        if (ok) sheet.close();
-        else setError(failMessage);
+        if (ok) {
+            Haptics.selectionAsync().catch(() => {}); // tiny "tick" to confirm
+            sheet.close();
+        } else {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+            setError(failMessage);
+        }
     };
 
     const pickSaved = (name) => run(() => onSelect(name), `Couldn't open ${name}.`);
@@ -155,7 +162,7 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(255,255,255,0.3)",
         marginBottom: 12,
     },
-    title: { fontSize: 22, fontWeight: "700", color: "#fff" },
+    title: { fontFamily: fonts.semibold, fontSize: 22, color: "#fff" },
     search: {
         flexDirection: "row",
         alignItems: "center",
@@ -164,8 +171,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         height: 48,
     },
-    input: { flex: 1, marginHorizontal: 8, fontSize: 16, color: "#fff" },
-    error: { marginTop: 8, fontSize: 13, color: "#FCA5A5" },
+    input: { flex: 1, marginHorizontal: 8, fontFamily: fonts.regular, fontSize: 16, color: "#fff" },
+    error: { marginTop: 8, fontFamily: fonts.regular, fontSize: 13, color: "#FCA5A5" },
     list: { flex: 1, marginTop: 10 },
-    hint: { marginTop: 16, textAlign: "center", fontSize: 14, color: "rgba(255,255,255,0.55)" },
+    hint: { marginTop: 16, textAlign: "center", fontFamily: fonts.regular, fontSize: 14, color: "rgba(255,255,255,0.55)" },
 });

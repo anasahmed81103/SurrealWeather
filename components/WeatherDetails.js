@@ -1,11 +1,15 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import GlassCard from "./GlassCard";
-import { formatClock, parseCityTime } from "../utils/time";
+import { StyleSheet, View } from "react-native";
+import SunArcCard from "./details/SunArcCard";
+import WindCard from "./details/WindCard";
+import GaugeCard from "./details/GaugeCard";
+import MoonCard from "./details/MoonCard";
 
 /* ------------------------------------------------------------------
- * WeatherDetails — 2-column grid of small tiles:
- * humidity, wind, UV, rain chance, sunrise, sunset.
+ * WeatherDetails — the detail section:
+ *   [ Sun arc (full width) ]
+ *   [ Wind     ][ Humidity ]
+ *   [ UV index ][ Moon     ]
  * ------------------------------------------------------------------ */
 
 function uvLevel(uv) {
@@ -16,33 +20,50 @@ function uvLevel(uv) {
     return "Extreme";
 }
 
-export default function WeatherDetails({ current, daily }) {
-    const uv = daily.uv_index_max?.[0];
+function humidityLevel(h) {
+    if (h < 30) return "Dry";
+    if (h < 60) return "Comfortable";
+    if (h < 80) return "Humid";
+    return "Very humid";
+}
 
-    const tiles = [
-        { icon: "water-percent", label: "Humidity", value: `${current.relative_humidity_2m}%` },
-        { icon: "weather-windy", label: "Wind", value: `${Math.round(current.wind_speed_10m)} km/h` },
-        { icon: "sun-wireless-outline", label: "UV index", value: uv == null ? "—" : `${Math.round(uv)}`, note: uv == null ? "" : uvLevel(uv) },
-        { icon: "umbrella-outline", label: "Rain chance", value: `${daily.precipitation_probability_max?.[0] ?? 0}%` },
-        { icon: "weather-sunset-up", label: "Sunrise", value: formatClock(parseCityTime(daily.sunrise[0])) },
-        { icon: "weather-sunset-down", label: "Sunset", value: formatClock(parseCityTime(daily.sunset[0])) },
-    ];
+export default function WeatherDetails({ weather, localTime, southern }) {
+    const { current, daily } = weather;
+    const uv = daily.uv_index_max?.[0] ?? 0;
+    const humidity = current.relative_humidity_2m ?? 0;
 
     return (
-        <View style={styles.grid}>
-            {tiles.map((t) => (
-                <GlassCard key={t.label} title={t.label} icon={t.icon} style={styles.tile}>
-                    <Text style={styles.value}>{t.value}</Text>
-                    {!!t.note && <Text style={styles.note}>{t.note}</Text>}
-                </GlassCard>
-            ))}
+        <View>
+            <SunArcCard daily={daily} localTime={localTime} />
+
+            <View style={styles.grid}>
+                <WindCard style={styles.tile} speed={current.wind_speed_10m} direction={current.wind_direction_10m ?? 0} />
+                <GaugeCard
+                    style={styles.tile}
+                    title="Humidity"
+                    icon="water-percent"
+                    value={humidity}
+                    unit="%"
+                    note={humidityLevel(humidity)}
+                    fraction={humidity / 100}
+                    scale={["#FCD34D", "#7DD3FC", "#3B82F6"]}
+                />
+                <GaugeCard
+                    style={styles.tile}
+                    title="UV index"
+                    icon="sun-wireless-outline"
+                    value={Math.round(uv)}
+                    note={uvLevel(uv)}
+                    fraction={uv / 11}
+                    scale={["#4ADE80", "#FACC15", "#FB923C", "#EF4444", "#A855F7"]}
+                />
+                <MoonCard style={styles.tile} date={new Date()} southern={southern} />
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
-    tile: { width: "48.5%", minHeight: 100 },
-    value: { fontSize: 24, fontWeight: "500", color: "#fff" },
-    note: { marginTop: 2, fontSize: 13, color: "rgba(255,255,255,0.7)" },
+    tile: { width: "48.5%", minHeight: 124 },
 });

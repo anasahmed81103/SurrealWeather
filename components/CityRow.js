@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { fonts } from "./theme";
 
 /* ------------------------------------------------------------------
  * CityRow — one row in the city picker. Used for both saved cities and
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
     main: { flex: 1, flexDirection: "row", alignItems: "center", paddingVertical: 12 },
     texts: { flex: 1, marginLeft: 10 },
     action: { marginLeft: 16 },
-    title: { fontSize: 17, color: "#fff" },
-    subtitle: { marginTop: 1, fontSize: 13, color: "rgba(255,255,255,0.55)" },
-    activeText: { fontWeight: "600", color: "#7DD3FC" },
+    title: { fontFamily: fonts.regular, fontSize: 17, color: "#fff" },
+    subtitle: { marginTop: 1, fontFamily: fonts.light, fontSize: 13, color: "rgba(255,255,255,0.55)" },
+    activeText: { fontFamily: fonts.medium, color: "#7DD3FC" },
 });

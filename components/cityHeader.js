@@ -1,7 +1,8 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { fonts } from "./theme";
 import { formatClock, formatDate } from "../utils/time";
 
 /* ------------------------------------------------------------------
@@ -55,8 +56,8 @@ const styles = StyleSheet.create({
     },
     city: {
         marginHorizontal: 6,
-        fontSize: 24,
-        fontWeight: "600",
+        fontFamily: fonts.medium,
+        fontSize: 25,
         color: "#fff",
         maxWidth: "80%",
         textShadowColor: "rgba(0,0,0,0.3)",
@@ -66,6 +67,7 @@ const styles = StyleSheet.create({
     date: {
         marginTop: 2,
         marginLeft: 26,
+        fontFamily: fonts.light,
         fontSize: 14,
         color: "rgba(255,255,255,0.8)",
     },

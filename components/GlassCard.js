@@ -1,11 +1,12 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { colors, fonts } from "./theme";
 
 /* ------------------------------------------------------------------
  * GlassCard — the frosted panel every section sits in.
- * Dark translucent glass so white text stays readable on any sky
- * (even bright snow/fog days).
+ * Dark translucent glass so white text stays readable on any sky,
+ * with a brighter top edge that catches the "light".
  * ------------------------------------------------------------------ */
 
 export default function GlassCard({ title, icon, style, children }) {
@@ -13,7 +14,7 @@ export default function GlassCard({ title, icon, style, children }) {
         <View style={[styles.card, style]}>
             {title && (
                 <View style={styles.titleRow}>
-                    {icon && <MaterialCommunityIcons name={icon} size={14} color="rgba(255,255,255,0.65)" />}
+                    {icon && <MaterialCommunityIcons name={icon} size={14} color={colors.textFaint} />}
                     <Text style={styles.title}>{title.toUpperCase()}</Text>
                 </View>
             )}
@@ -24,23 +25,20 @@ export default function GlassCard({ title, icon, style, children }) {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: "rgba(12, 20, 38, 0.32)",
-        borderColor: "rgba(255, 255, 255, 0.14)",
+        backgroundColor: colors.glass,
+        borderColor: colors.glassBorder,
+        borderTopColor: "rgba(255,255,255,0.24)",
         borderWidth: 1,
-        borderRadius: 22,
+        borderRadius: 24,
         padding: 16,
-        marginBottom: 14,
-    },
-    titleRow: {
-        flexDirection: "row",
-        alignItems: "center",
         marginBottom: 12,
     },
+    titleRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
     title: {
         marginLeft: 6,
-        fontSize: 12,
-        fontWeight: "600",
-        letterSpacing: 1,
-        color: "rgba(255,255,255,0.65)",
+        fontFamily: fonts.medium,
+        fontSize: 11.5,
+        letterSpacing: 1.2,
+        color: colors.textFaint,
     },
 });
