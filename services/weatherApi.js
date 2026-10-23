@@ -6,7 +6,7 @@ import { fetchJson } from "./http";
  *
  * ONE request per city gives everything the screen shows:
  *   current: temperature_2m, apparent_temperature, weather_code, is_day,
- *            relative_humidity_2m, wind_speed_10m
+ *            relative_humidity_2m, wind_speed_10m, wind_direction_10m
  *   hourly:  next 24 hours of temperature, weather_code, is_day, rain chance
  *   daily:   7 days of weather_code, min/max temp, sunrise, sunset,
  *            rain chance, UV index
@@ -17,7 +17,8 @@ const OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 
 // Only ask for the fields the UI actually shows — keeps responses small
 const CURRENT_FIELDS =
-    "temperature_2m,apparent_temperature,weather_code,is_day,relative_humidity_2m,wind_speed_10m";
+    "temperature_2m,apparent_temperature,weather_code,is_day,relative_humidity_2m," +
+    "wind_speed_10m,wind_direction_10m";
 const HOURLY_FIELDS = "temperature_2m,weather_code,is_day,precipitation_probability";
 const DAILY_FIELDS =
     "weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset," +

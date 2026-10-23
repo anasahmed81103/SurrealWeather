@@ -4,7 +4,7 @@ import { useAudioPlayer, setAudioModeAsync } from "expo-audio";
 
 /* ------------------------------------------------------------------
  * useAmbientSound — plays a short weather "sound moment":
- *   fade in (1.2 s) → play (4 s) → fade out (1.5 s) → pause.
+ *   gentle fade in (2.5 s) → play (4 s) → fade out (2 s) → pause.
  *
  * A moment plays when:
  *   - `trigger` changes (pass the weather object → app open, city change,
@@ -27,9 +27,9 @@ const SOUND_FILES = {
     storm: require("../assets/sounds/storm.m4a"),
 };
 
-const FADE_IN_MS = 1200;
+const FADE_IN_MS = 2500;
 const HOLD_MS = 4000;
-const FADE_OUT_MS = 1500;
+const FADE_OUT_MS = 2000;
 const FADE_STEP_MS = 50;
 const LOOP_SECONDS = 50; // length of every file in assets/sounds
 
@@ -38,6 +38,7 @@ export default function useAmbientSound(ambience, enabled, trigger) {
     const loadedKey = useRef(null); // which file is currently in the player
     const fadeTimer = useRef(null);
     const holdTimer = useRef(null);
+    const momentId = useRef(0); // newest moment wins if several start close together
 
     // Latest values for the AppState listener (registered once)
     const latest = useRef({});
@@ -48,15 +49,20 @@ export default function useAmbientSound(ambience, enabled, trigger) {
         clearTimeout(holdTimer.current);
     };
 
-    // Smoothly move the volume to `target` over `ms`, then call `done`
+    // Smoothly move the volume to `target` over `ms`, then call `done`.
+    // Ears hear loudness logarithmically, so a straight line sounds rushed.
+    // Curves: fade in starts very slowly (p²), fade out trails off gently (1-(1-p)²).
     const fadeTo = (target, ms, done) => {
         clearInterval(fadeTimer.current);
         const start = player.volume;
+        const rising = target > start;
         const steps = Math.max(1, Math.round(ms / FADE_STEP_MS));
         let step = 0;
         fadeTimer.current = setInterval(() => {
             step += 1;
-            player.volume = start + ((target - start) * step) / steps;
+            const p = step / steps;
+            const eased = rising ? p * p : 1 - (1 - p) * (1 - p);
+            player.volume = start + (target - start) * eased;
             if (step >= steps) {
                 clearInterval(fadeTimer.current);
                 done?.();
@@ -65,25 +71,30 @@ export default function useAmbientSound(ambience, enabled, trigger) {
     };
 
     const fadeOutAndStop = (ms = FADE_OUT_MS) => {
+        momentId.current += 1; // cancels a moment that is still starting up
         clearTimeout(holdTimer.current);
         fadeTo(0, ms, () => player.pause());
     };
 
     // fade in → hold → fade out
-    const playMoment = () => {
+    const playMoment = async () => {
         const { ambience: amb, enabled: on } = latest.current;
         if (!on || !amb) return;
 
+        const id = ++momentId.current;
         try {
             stopTimers();
+            player.volume = 0; // silent *before* anything can be heard
             if (loadedKey.current !== amb.key) {
                 player.replace(SOUND_FILES[amb.key]);
                 loadedKey.current = amb.key;
             }
-            // Start somewhere random in the recording so it never sounds identical
-            player.seekTo(Math.random() * (LOOP_SECONDS - 10)).catch(() => {});
+            // Start somewhere random so it never sounds identical — seek first, then play,
+            // so there's no blip from the old position
+            await player.seekTo(Math.random() * (LOOP_SECONDS - 10)).catch(() => {});
+            if (id !== momentId.current) return; // a newer moment took over
+
             player.loop = true;
-            player.volume = 0;
             player.play();
 
             console.log("[sound] moment:", amb.key);

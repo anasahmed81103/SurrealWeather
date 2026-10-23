@@ -1,28 +1,34 @@
 import React from "react";
 import { Animated, StyleSheet, View, useWindowDimensions } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import useLoop from "./useLoop";
 
 /* ------------------------------------------------------------------
- * Fog — wide, soft bands of mist sliding slowly back and forth.
+ * Fog — wide banks of mist with soft top/bottom edges, sliding slowly
+ * back and forth at different speeds.
  * ------------------------------------------------------------------ */
 
-const BANDS = [
-    { top: "26%", duration: 38000, opacity: 0.16, offset: 0 },
-    { top: "46%", duration: 52000, opacity: 0.22, offset: 0.4 },
-    { top: "66%", duration: 44000, opacity: 0.18, offset: 0.75 },
+const BANKS = [
+    { top: "18%", height: 180, duration: 42000, opacity: 0.22, offset: 0 },
+    { top: "38%", height: 220, duration: 56000, opacity: 0.28, offset: 0.35 },
+    { top: "58%", height: 200, duration: 48000, opacity: 0.24, offset: 0.7 },
+    { top: "76%", height: 240, duration: 64000, opacity: 0.3, offset: 0.15 },
 ];
 
-function Band({ top, duration, opacity, offset, width }) {
+function Bank({ top, height, duration, opacity, offset, width }) {
     const p = useLoop(duration, offset);
     const translateX = p.interpolate({
         inputRange: [0, 0.5, 1],
-        outputRange: [-width * 0.6, 0, -width * 0.6],
+        outputRange: [-width * 0.5, 0, -width * 0.5],
     });
 
     return (
-        <Animated.View
-            style={[styles.band, { top, opacity, width: width * 1.6, transform: [{ translateX }] }]}
-        />
+        <Animated.View style={[styles.bank, { top, height, opacity, width: width * 1.5, transform: [{ translateX }] }]}>
+            <LinearGradient
+                colors={["rgba(255,255,255,0)", "rgba(255,255,255,1)", "rgba(255,255,255,0)"]}
+                style={StyleSheet.absoluteFill}
+            />
+        </Animated.View>
     );
 }
 
@@ -31,19 +37,13 @@ export default function Fog() {
 
     return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            {BANDS.map((band) => (
-                <Band key={band.top} {...band} width={width} />
+            {BANKS.map((bank) => (
+                <Bank key={bank.top} {...bank} width={width} />
             ))}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    band: {
-        position: "absolute",
-        left: 0,
-        height: 140,
-        borderRadius: 70,
-        backgroundColor: "#FFFFFF",
-    },
+    bank: { position: "absolute", left: 0 },
 });

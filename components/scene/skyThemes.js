@@ -1,27 +1,48 @@
 /* ------------------------------------------------------------------
  * Colours for the animated scene. Tweak the look of the app here.
  *
- *  getSkyColors(kind, phase)  → 3-stop top-to-bottom sky gradient
- *  getCloudColor(kind, phase) → cloud colour for that sky
+ *  getSkyColors(kind, phase)   → 4-stop top-to-bottom sky gradient
+ *  getCloudColors(kind, phase) → [top, bottom] cloud shading
  *
  * kind:  clear | partly | cloudy | fog | rain | snow | thunder
  * phase: dawn | day | dusk | night
  * ------------------------------------------------------------------ */
 
 const SKIES = {
-    clear: { day: ["#1565C0", "#3D8FE0", "#8EC9F7"], night: ["#030818", "#0B1838", "#1D3366"] },
-    partly: { day: ["#2A6CC4", "#5A9BE0", "#A4CEF2"], night: ["#060D22", "#13234A", "#2A4170"] },
-    cloudy: { day: ["#56677D", "#8193A8", "#B7C3D0"], night: ["#10151E", "#1E2633", "#323D4E"] },
-    fog: { day: ["#7F8B98", "#A9B3BD", "#D3D9DF"], night: ["#181C22", "#2A3038", "#424A55"] },
-    rain: { day: ["#27354A", "#43566E", "#6B7F96"], night: ["#080D15", "#141D2A", "#233142"] },
-    snow: { day: ["#6F87A5", "#A0B4CC", "#D6E2EF"], night: ["#111A2A", "#22304A", "#3A4B69"] },
-    thunder: { day: ["#171A26", "#2B3045", "#474D66"], night: ["#05060B", "#10121C", "#1D2030"] },
+    clear: {
+        day: ["#0B5FC4", "#2A86E0", "#64AEF0", "#B5DCFA"],
+        night: ["#02040F", "#081230", "#132552", "#26406E"],
+    },
+    partly: {
+        day: ["#1C66C2", "#4590DD", "#7DB5EC", "#BFDDF6"],
+        night: ["#050A1C", "#0E1B3D", "#1C305A", "#2E4672"],
+    },
+    cloudy: {
+        day: ["#4A5B72", "#6D7F96", "#97A6B8", "#C2CCD8"],
+        night: ["#0C1018", "#171E29", "#252F3D", "#37424F"],
+    },
+    fog: {
+        day: ["#6F7B88", "#949FAA", "#B9C1C9", "#DCE1E5"],
+        night: ["#14171C", "#22272E", "#343A42", "#4A5159"],
+    },
+    rain: {
+        day: ["#1D2838", "#334457", "#4F6278", "#73879C"],
+        night: ["#05080E", "#0D141E", "#18222F", "#263342"],
+    },
+    snow: {
+        day: ["#5E7695", "#88A0BC", "#B4C6DA", "#E2EBF4"],
+        night: ["#0D1524", "#1B2840", "#2F4060", "#4A5D7E"],
+    },
+    thunder: {
+        day: ["#0F121C", "#20253A", "#363C57", "#4E5672"],
+        night: ["#030409", "#0A0C15", "#151826", "#232738"],
+    },
 };
 
-// Golden-hour skies — only used when you can actually see the sky (clear / partly)
+// Golden-hour skies — only when you can actually see the sky (clear / partly)
 const GOLDEN = {
-    dawn: ["#1D2B5E", "#8A5C8F", "#F4A86B"],
-    dusk: ["#1A1B48", "#A5466A", "#F68F5A"],
+    dawn: ["#14204F", "#4F4A8A", "#C66F8A", "#F8B27A"],
+    dusk: ["#120F3A", "#4A2C6E", "#B4467A", "#F7915C"],
 };
 
 export function getSkyColors(kind, phase) {
@@ -29,15 +50,31 @@ export function getSkyColors(kind, phase) {
     return SKIES[kind][phase === "night" ? "night" : "day"];
 }
 
+// [top, bottom] — clouds are lit from above, shaded underneath
 const CLOUDS = {
-    day: { partly: "#FFFFFF", cloudy: "#E3E8EF", fog: "#E6EAEE", rain: "#8E9BAD", snow: "#EEF2F7", thunder: "#4F566B" },
-    night: { partly: "#33405E", cloudy: "#38404F", fog: "#4A515B", rain: "#2A3340", snow: "#56637A", thunder: "#1B1F2B" },
+    day: {
+        partly: ["#FFFFFF", "#D9E6F2"],
+        cloudy: ["#EEF2F6", "#A9B5C3"],
+        fog: ["#F1F3F5", "#C8CED4"],
+        rain: ["#A8B3C1", "#5E6B7B"],
+        snow: ["#FBFCFE", "#C9D4E1"],
+        thunder: ["#6B7389", "#2B3043"],
+    },
+    night: {
+        partly: ["#3E4C6E", "#1E2A44"],
+        cloudy: ["#465062", "#232A36"],
+        fog: ["#59616C", "#353B44"],
+        rain: ["#333D4C", "#171E28"],
+        snow: ["#66748E", "#3A4660"],
+        thunder: ["#262B3A", "#0E1119"],
+    },
+    golden: ["#FFE0D0", "#C9849A"], // sunrise / sunset tint for light clouds
 };
 
-export function getCloudColor(kind, phase) {
-    if (phase === "dusk" || phase === "dawn") return kind === "partly" ? "#F3C1B0" : CLOUDS.day[kind];
-    return CLOUDS[phase === "night" ? "night" : "day"][kind] || "#FFFFFF";
+export function getCloudColors(kind, phase) {
+    if ((phase === "dawn" || phase === "dusk") && kind === "partly") return CLOUDS.golden;
+    return CLOUDS[phase === "night" ? "night" : "day"][kind] || CLOUDS.day.cloudy;
 }
 
 // How many clouds drift across the sky for each kind of weather
-export const CLOUD_COUNT = { clear: 0, partly: 3, cloudy: 6, fog: 2, rain: 5, snow: 4, thunder: 6 };
+export const CLOUD_COUNT = { clear: 0, partly: 4, cloudy: 8, fog: 3, rain: 7, snow: 5, thunder: 8 };

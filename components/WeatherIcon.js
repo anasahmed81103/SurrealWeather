@@ -1,5 +1,5 @@
 import React from "react";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { getWeatherIcon } from "../utils/weatherCodes";
 
 /* WeatherIcon — the right icon + colour for a WMO weather code. */

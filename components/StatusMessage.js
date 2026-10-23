@@ -1,6 +1,7 @@
 import React from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { fonts } from "./theme";
 
 /* ------------------------------------------------------------------
  * StatusMessage — shown over the sky while loading, or when weather
@@ -31,8 +32,8 @@ export default function StatusMessage({ status, onRetry }) {
 
 const styles = StyleSheet.create({
     center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
-    title: { marginTop: 14, fontSize: 20, fontWeight: "600", color: "#fff" },
-    text: { marginTop: 8, fontSize: 15, color: "rgba(255,255,255,0.8)", textAlign: "center" },
+    title: { marginTop: 14, fontFamily: fonts.medium, fontSize: 20, color: "#fff" },
+    text: { marginTop: 8, fontFamily: fonts.regular, fontSize: 15, color: "rgba(255,255,255,0.8)", textAlign: "center" },
     button: {
         marginTop: 20,
         paddingHorizontal: 28,
@@ -42,5 +43,5 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "rgba(255,255,255,0.3)",
     },
-    buttonText: { fontSize: 16, fontWeight: "600", color: "#fff" },
+    buttonText: { fontFamily: fonts.medium, fontSize: 16, color: "#fff" },
 });

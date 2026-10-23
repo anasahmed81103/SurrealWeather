@@ -35,8 +35,9 @@ built with simple, light code.
 App.js                  # providers only
 screens/                # full screens (layout, no API calls)
 hooks/                  # state + reusable logic (useCityWeather, suggestions, draggable sheet)
-components/             # UI pieces (header, cards, picker)
-components/scene/       # animated weather background layers
+components/             # UI pieces (header, cards, picker) + theme.js (fonts, colours)
+components/details/     # detail tiles (sun arc, wind, gauges, moon)
+components/scene/       # animated weather background layers (SVG + Animated)
 services/               # API calls (http, weatherApi, geocodingApi)
 db/                     # local storage
 utils/                  # pure helpers (weather codes, time, offline city search)
@@ -58,3 +59,8 @@ Check config/deps with `npx expo-doctor`.
 
 - Use `react-native-safe-area-context` (not React Native's deprecated `SafeAreaView`).
 - Animations: React Native `Animated` with `useNativeDriver: true` (see `components/scene/useLoop.js`).
+  Draw shapes with `react-native-svg`, but only animate the wrapping `Animated.View` (transform/opacity).
+- Fonts/colours come from `components/theme.js`. Use `fontFamily` (Outfit weights), never `fontWeight`.
+- Icons: `import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"`
+  (importing from "@expo/vector-icons" bundles every icon font, ~4 MB).
+- Preview any scene with `DEBUG_SCENE` in `screens/WeatherScreen.js` (keep it null when done).
