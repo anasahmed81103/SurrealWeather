@@ -38,7 +38,7 @@ hooks/                  # state + reusable logic (useCityWeather, suggestions, d
 components/             # UI pieces (header, cards, picker) + theme.js (fonts, colours)
 components/details/     # detail tiles (sun arc, wind, gauges, moon)
 components/scene/       # animated weather background layers (SVG + Animated)
-widgets/                # Android home-screen widget (layout, data, task handler, updateWidget)
+widgets/                # Android home-screen widget (layout, painted SVG sky, data, task handler, updateWidget)
 services/               # API calls (http, weatherApi, geocodingApi)
 db/                     # local storage
 utils/                  # pure helpers (weather codes, time, offline city search)

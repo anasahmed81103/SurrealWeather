@@ -19,7 +19,9 @@ export async function updateWidget() {
 
         await requestWidgetUpdate({
             widgetName: WIDGET_NAME,
-            renderWidget: async () => <WeatherWidget {...(await getHomeWeather())} />,
+            renderWidget: async (info) => (
+                <WeatherWidget {...(await getHomeWeather())} width={info.width} height={info.height} />
+            ),
             widgetNotFound: () => console.log("[widget] none on the home screen"),
         });
     } catch (err) {
