@@ -8,10 +8,10 @@ import { getHomeWeather } from "./homeWeather";
  * Clicks are handled natively (clickAction="OPEN_APP"), nothing to do here.
  * ------------------------------------------------------------------ */
 
-export async function widgetTaskHandler({ widgetAction, renderWidget }) {
+export async function widgetTaskHandler({ widgetAction, widgetInfo, renderWidget }) {
     console.log("[widget]", widgetAction);
     if (widgetAction === "WIDGET_DELETED" || widgetAction === "WIDGET_CLICK") return;
 
     const data = await getHomeWeather(); // never throws
-    renderWidget(<WeatherWidget {...data} />);
+    renderWidget(<WeatherWidget {...data} width={widgetInfo.width} height={widgetInfo.height} />);
 }

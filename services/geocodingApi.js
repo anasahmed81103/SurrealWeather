@@ -1,5 +1,6 @@
 import * as Location from "expo-location";
 import { fetchJson, withTimeout } from "./http";
+import { pickPlaceName, UNKNOWN_PLACE } from "../utils/placeName";
 
 /* ------------------------------------------------------------------
  * GEOCODING + LOCATION — all free, no API keys, no billing.
@@ -103,7 +104,8 @@ export async function searchCity(query) {
 }
 
 /**
- * Turn GPS coordinates into a city name.
+ * Turn GPS coordinates into a city / town / district name.
+ * Picking the name is done by utils/placeName.js (skips junk like "East").
  * Never throws — returns "My Location" if everything fails.
  */
 export async function getCityNameFromCoords(lat, lng) {
@@ -114,23 +116,37 @@ export async function getCityNameFromCoords(lat, lng) {
             8000,
             "Reverse geocode"
         );
-        const name = place?.city || place?.subregion || place?.region;
+        // Log only the fields we pick from (not the street address) — handy when a name looks wrong
+        const parts = {
+            city: place?.city,
+            district: place?.district,
+            subregion: place?.subregion,
+            region: place?.region,
+            country: place?.country,
+        };
+        console.log("[geocode] native:", JSON.stringify(parts));
+        const name = pickPlaceName(parts);
         if (name) return name;
     } catch (err) {
         // Expected on web — the native geocoder only exists on phones
         console.log("[geocode] native unavailable, using fallback:", err.message);
     }
 
-    // 2) Fallback: BigDataCloud free client-side endpoint
+    // 2) Fallback (also when the native answer was only junk): BigDataCloud free client endpoint
     try {
         const data = await fetchJson(
             `${BIGDATACLOUD_REVERSE_URL}?latitude=${lat}&longitude=${lng}&localityLanguage=en`
         );
-        const name = data.city || data.locality || data.principalSubdivision;
+        const name = pickPlaceName({
+            city: data.city,
+            district: data.locality,
+            region: data.principalSubdivision,
+            country: data.countryName,
+        });
         if (name) return name;
     } catch (err) {
         console.warn("[geocode] fallback failed:", err.message);
     }
 
-    return "My Location";
+    return UNKNOWN_PLACE;
 }
