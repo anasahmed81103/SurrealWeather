@@ -29,6 +29,28 @@ built with simple, light code.
     as fallback.
   - Never hardcode secrets in the app.
 
+## Size & smoothness (don't regress — ~15 MB on Play, smooth on low-end phones)
+
+Size:
+- Release builds ship as an **app bundle** (`eas.json` production → `app-bundle`), so Play
+  serves each phone only its own CPU/density slice.
+- `expo-build-properties` in app.json: `enableMinifyInReleaseBuilds` + `enableShrinkResourcesInReleaseBuilds` (R8 strips unused Java/resources).
+- Few native deps. Every new library adds native code to every install, so ask first
+  (`expo-blur` was removed for this). Build with SVG and `expo-linear-gradient` before reaching
+  for a new library.
+- Scenes are drawn in SVG code, not images or Lottie files. Audio is short AAC `.m4a` (~3 MB
+  in total). Icons are imported per family (see below).
+
+Smoothness:
+- Every scene animation runs on the **native driver** via one `useLoop` (0→1 forever),
+  turned into motion with `interpolate`, so JS work (fetching, re-renders) never drops frames.
+- SVG shapes are drawn once. Only the wrapping `Animated.View` transform/opacity moves.
+  Never animate SVG props.
+- `WeatherScene` is `memo()`'d, so clock ticks and other state changes don't redraw the sky.
+- Particles get a random `offset` instead of a staggered start, so they don't all start together.
+- Local-first: the cache paints instantly, with at most one small request per city every 10 min
+  (fields trimmed). No polling. Sound pauses when the app is backgrounded (`AppState`).
+
 ## Project layout
 
 ```
