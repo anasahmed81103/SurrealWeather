@@ -21,6 +21,7 @@ export const colors = {
     accent: "#7DD3FC", // sky blue — active things
     rain: "#8FD0FF",
     warm: "#FCD34D",
+    moon: "#C7D2FE", // pale silver-blue — moon arc
     hot: "#FB923C",
     danger: "#F87171",
     glass: "rgba(12, 20, 38, 0.30)", // card background

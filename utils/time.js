@@ -44,6 +44,12 @@ export function formatHour(d) {
     return `${hour} ${ampm}`;
 }
 
+/** "3h 20m" */
+export function formatDuration(ms) {
+    const mins = Math.max(0, Math.round(ms / 60000));
+    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+}
+
 /** "Mon" */
 export const formatDay = (d) => DAYS[d.getUTCDay()].slice(0, 3);
 

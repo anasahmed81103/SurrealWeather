@@ -4,12 +4,14 @@ import SunArcCard from "./details/SunArcCard";
 import WindCard from "./details/WindCard";
 import GaugeCard from "./details/GaugeCard";
 import MoonCard from "./details/MoonCard";
+import MoonArcCard from "./details/MoonArcCard";
 
 /* ------------------------------------------------------------------
  * WeatherDetails — the detail section:
  *   [ Sun arc (full width) ]
  *   [ Wind     ][ Humidity ]
  *   [ UV index ][ Moon     ]
+ *   [ Moon rise & set arc  ]
  * ------------------------------------------------------------------ */
 
 function uvLevel(uv) {
@@ -59,6 +61,16 @@ export default function WeatherDetails({ weather, localTime, southern }) {
                 />
                 <MoonCard style={styles.tile} date={new Date()} southern={southern} />
             </View>
+
+            {weather.latitude != null && (
+                <MoonArcCard
+                    lat={weather.latitude}
+                    lng={weather.longitude}
+                    utcOffsetSeconds={weather.utc_offset_seconds ?? 0}
+                    localTime={localTime}
+                    southern={southern}
+                />
+            )}
         </View>
     );
 }
