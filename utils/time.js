@@ -53,6 +53,9 @@ export function formatDuration(ms) {
 /** "Mon" */
 export const formatDay = (d) => DAYS[d.getUTCDay()].slice(0, 3);
 
+/** "Oct 19" */
+export const formatDayMonth = (d) => `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`;
+
 /** "Monday, Oct 19" */
 export const formatDate = (d) =>
     `${DAYS[d.getUTCDay()]}, ${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`;

@@ -8,9 +8,9 @@ import MoonArcCard from "./details/MoonArcCard";
 
 /* ------------------------------------------------------------------
  * WeatherDetails — the detail section:
- *   [ Sun arc (full width) ]
- *   [ Wind     ][ Humidity ]
+ *   [ Wind     ][ Humidity ]   quick-glance tiles first
  *   [ UV index ][ Moon     ]
+ *   [ Sun arc (full width) ]   then the sky pair, sun and moon together
  *   [ Moon rise & set arc  ]
  * ------------------------------------------------------------------ */
 
@@ -36,8 +36,6 @@ export default function WeatherDetails({ weather, localTime, southern }) {
 
     return (
         <View>
-            <SunArcCard daily={daily} localTime={localTime} />
-
             <View style={styles.grid}>
                 <WindCard style={styles.tile} speed={current.wind_speed_10m} direction={current.wind_direction_10m ?? 0} />
                 <GaugeCard
@@ -62,6 +60,7 @@ export default function WeatherDetails({ weather, localTime, southern }) {
                 <MoonCard style={styles.tile} date={new Date()} southern={southern} />
             </View>
 
+            <SunArcCard daily={daily} localTime={localTime} />
             {weather.latitude != null && (
                 <MoonArcCard
                     lat={weather.latitude}

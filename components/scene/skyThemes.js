@@ -45,8 +45,15 @@ const GOLDEN = {
     dusk: ["#120F3A", "#4A2C6E", "#B4467A", "#F7915C"],
 };
 
+// Dawn / dusk through fog: the same warm light, washed out and pearly
+const MISTY_GOLDEN = {
+    dawn: ["#3C4360", "#6C6E88", "#AE9A9F", "#E2C6B6"],
+    dusk: ["#33304D", "#665A78", "#AD878E", "#DDAE98"],
+};
+
 export function getSkyColors(kind, phase) {
     if ((kind === "clear" || kind === "partly") && GOLDEN[phase]) return GOLDEN[phase];
+    if (kind === "fog" && MISTY_GOLDEN[phase]) return MISTY_GOLDEN[phase];
     return SKIES[kind][phase === "night" ? "night" : "day"];
 }
 

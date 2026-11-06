@@ -75,6 +75,12 @@ two `hooks/useFadingPlayer.js` players. Audio format: AAC `.m4a`, loudness-match
 Original audio files go in `raw-audio/` (git-ignored). Keep the expo-audio
 plugin's microphone/background options OFF in app.json — the app never records.
 
+"On this day" history: `hooks/useClimateHistory.js` downloads 10 years of daily high/low/rain
+(Open-Meteo archive API, ~110 KB, one request per place) **once a year**, cached in
+`db/climateDb.js` keyed by rounded coordinates (~47 KB per place). Loads only after the forecast;
+fails silently (card hidden). Maths in `utils/climateStats.js`. Moon rise/set are computed
+on the phone (`utils/moonTimes.js`), no API.
+
 City search: offline list first (`utils/citySearch.js`, typo-tolerant), Open-Meteo online search
 only as a debounced backup for small towns.
 

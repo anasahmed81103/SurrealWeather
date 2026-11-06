@@ -30,6 +30,12 @@ const STARS = [
     [0.4, 0.15, 0.8], [0.98, 0.1, 0.9],
 ];
 
+// Fog: soft mist banks [cx, cy, rx (of width), ry (of height), opacity], mostly on the right
+const MIST_BANKS = [
+    [0.95, 0.24, 0.3, 0.12, 0.7], [0.74, 0.44, 0.4, 0.13, 1], [0.58, 0.62, 0.45, 0.14, 0.85],
+    [0.88, 0.72, 0.38, 0.13, 1], [0.5, 0.88, 0.55, 0.15, 0.75],
+];
+
 const n = (v) => Math.round(v * 10) / 10; // keep the SVG string short
 
 // Cloud shades. Solid colours: a gradient per puff would show seams between them.
@@ -57,6 +63,9 @@ function defs(sky, w, h, radius) {
 <stop offset="0" stop-color="${sky[0]}"/><stop offset="0.55" stop-color="${sky[1]}"/><stop offset="1" stop-color="${sky[2]}"/></linearGradient>
 ${radial("sunGlow", "#FFE6A0", 0.9)}${radial("moonGlow", "#C8D2FF", 0.45)}${radial("haze", "#FFFFFF", 0.16)}
 ${radial("boltGlow", "#B9A2FF", 0.55)}${radial("shade", "#000000", 0.22)}
+${radial("fogSun", "#FFF3D6", 0.55)}${radial("mist", "#FFFFFF", 0.5)}
+<linearGradient id="fogFloor" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0.3"/></linearGradient>
 <clipPath id="card"><rect width="${w}" height="${h}" rx="${radius}"/></clipPath>
 </defs>`;
 }
@@ -86,11 +95,21 @@ function weatherArt(kind, night, w, h) {
                 cloud(x + s * 0.5, y - s * 0.1, s * 0.9, night ? "night" : "grey", 0.8) +
                 cloud(x - s * 0.4, y + s * 0.5, s * 1.1, night ? "night" : "light", 0.9)
             );
-        case "fog":
-            return [0.3, 0.5, 0.7, 0.88]
-                .map((fy, i) =>
-                    `<rect x="${n(w * (0.42 + i * 0.07))}" y="${n(h * fy)}" width="${n(w * 0.9)}" height="${n(h * 0.09)}" rx="${n(h * 0.045)}" fill="#FFFFFF" opacity="${0.22 - i * 0.03}"/>`)
-                .join("");
+        case "fog": {
+            // A pale sun / moon behind the veil, a faint cloud, soft banks of mist and ground haze
+            const lx = x + s * 0.5;
+            const ly = y - s * 0.25;
+            const banks = MIST_BANKS.map(([fx, fy, rx, ry, o]) =>
+                `<ellipse cx="${n(fx * w)}" cy="${n(fy * h)}" rx="${n(rx * w)}" ry="${n(ry * h)}" fill="url(#mist)" opacity="${o}"/>`
+            ).join("");
+            return (
+                glow(lx, ly, h * 0.8, night ? "moonGlow" : "fogSun") +
+                `<circle cx="${n(lx)}" cy="${n(ly)}" r="${n(h * 0.14)}" fill="${night ? "#E6EAF5" : "#FFF8E6"}" opacity="${night ? 0.4 : 0.6}"/>` +
+                cloud(x - s * 0.15, y + s * 0.2, s * 0.95, night ? "night" : "grey", 0.4) +
+                `<g opacity="${night ? 0.65 : 1}">${banks}</g>` +
+                `<rect y="${n(h * 0.5)}" width="${w}" height="${n(h * 0.5)}" fill="url(#fogFloor)"/>`
+            );
+        }
         case "rain":
         case "thunder": {
             const drops = Array.from({ length: 9 }, (_, i) => {

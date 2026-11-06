@@ -12,11 +12,13 @@ import GlassDrops from "./GlassDrops";
 import Snow from "./Snow";
 import Lightning from "./Lightning";
 import Fog from "./Fog";
+import FogLight from "./FogLight";
 
 /* ------------------------------------------------------------------
  * WeatherScene — the full-screen animated background.
  * Stacks layers back-to-front based on the weather and time of day:
- *   sky → stars → sun/moon → clouds → fog/rain/snow → lightning
+ *   sky → stars → sun/moon (or veiled light in fog) → clouds
+ *   → fog/rain/snow → lightning
  *   → drops on the glass → soft vignette (keeps text readable).
  *
  * Props: code (WMO), phase (dawn|day|dusk|night), wind (km/h),
@@ -37,13 +39,14 @@ function WeatherScene({ code, phase, wind = 10, moonPhase = 0.5, southern = fals
 
             {isNight && skyVisible && <Stars shooting={kind === "clear"} />}
             {skyVisible && (isNight ? <Moon phase={moonPhase} southern={southern} /> : <Sun low={phase !== "day"} />)}
+            {kind === "fog" && <FogLight phase={phase} />}
 
             {CLOUD_COUNT[kind] > 0 && (
                 // key → fresh clouds when the weather or time of day changes
                 <Clouds key={`${kind}-${phase}`} count={CLOUD_COUNT[kind]} colors={getCloudColors(kind, phase)} />
             )}
 
-            {kind === "fog" && <Fog />}
+            {kind === "fog" && <Fog phase={phase} />}
             {wet && <Rain intensity={kind === "thunder" ? 3 : intensity} wind={wind} />}
             {kind === "snow" && <Snow intensity={intensity} />}
             {kind === "thunder" && <Lightning />}

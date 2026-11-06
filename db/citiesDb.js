@@ -237,3 +237,6 @@ export const clearStaleWeather = isMobile
     : clearStaleWeatherWeb;
 
 export const usingMobileDb = isMobile;
+
+// Shared connection for other storage files (db/climateDb.js) — one connection, no lock fights
+export const sqliteDb = db;

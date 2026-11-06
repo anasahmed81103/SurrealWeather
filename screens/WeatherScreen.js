@@ -8,6 +8,7 @@ import useCityWeather from "../hooks/useCityWeather";
 import useMinuteTick from "../hooks/useMinuteTick";
 import useSoundSetting from "../hooks/useSoundSetting";
 import useAmbientSound from "../hooks/useAmbientSound";
+import useClimateHistory from "../hooks/useClimateHistory";
 import { cityNow, deviceOffsetSeconds, getDayPhase, parseCityTime } from "../utils/time";
 import { getAmbience, getMusic } from "../utils/ambience";
 import { getMoonPhase } from "../utils/moonPhase";
@@ -19,6 +20,7 @@ import CurrentWeather from "../components/CurrentWeather";
 import HourlyChart from "../components/HourlyChart";
 import DailyForecast from "../components/DailyForecast";
 import WeatherDetails from "../components/WeatherDetails";
+import HistoryCard from "../components/details/HistoryCard";
 import StatusMessage from "../components/StatusMessage";
 import FadeIn from "../components/FadeIn";
 import { colors, fonts } from "../components/theme";
@@ -29,7 +31,9 @@ import { colors, fonts } from "../components/theme";
  *   [animated WeatherScene, full screen, drifts up slightly on scroll]
  *   CityHeader          (right under the status bar)
  *   ScrollView          (pull down to refresh)
- *     CurrentWeather → HourlyChart → DailyForecast → WeatherDetails
+ *     CurrentWeather → HourlyChart → DailyForecast → HistoryCard → WeatherDetails
+ *     (most-used first: now, next hours, the week; then the 10-year story;
+ *      then the detail tiles and the sun/moon arcs)
  *     (cards fade in one after another)
  *   CityPicker          (bottom sheet)
  *
@@ -61,6 +65,8 @@ export default function WeatherScreen() {
     const sceneCode = DEBUG_SCENE?.code ?? weather?.current.weather_code ?? 3; // overcast while nothing is loaded
     const scenePhase = DEBUG_SCENE?.phase ?? phase;
     const southern = (weather?.latitude ?? 0) < 0;
+    // 10-year "on this day" history — loads after the forecast, hidden until ready
+    const { history, status: historyStatus } = useClimateHistory(city?.lat, city?.lng, weather?.daily.time[0]);
     const moonPhase = useMemo(() => getMoonPhase(new Date(nowMs)), [Math.floor(nowMs / 3600000)]); // hourly is plenty
 
     // A short ambient "sound moment" each time new weather loads
@@ -124,7 +130,12 @@ export default function WeatherScreen() {
                     <FadeIn delay={STAGGER_MS * 2}>
                         <DailyForecast daily={weather.daily} currentTemp={weather.current.temperature_2m} />
                     </FadeIn>
-                    <FadeIn delay={STAGGER_MS * 3}>
+                    {historyStatus !== "none" && (
+                        <FadeIn delay={STAGGER_MS * 3}>
+                            <HistoryCard history={history} daily={weather.daily} />
+                        </FadeIn>
+                    )}
+                    <FadeIn delay={STAGGER_MS * 4}>
                         <WeatherDetails weather={weather} localTime={localTime} southern={southern} />
                     </FadeIn>
 
