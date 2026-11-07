@@ -78,7 +78,11 @@ plugin's microphone/background options OFF in app.json — the app never records
 "On this day" history: `hooks/useClimateHistory.js` downloads 10 years of daily high/low/rain
 (Open-Meteo archive API, ~110 KB, one request per place) **once a year**, cached in
 `db/climateDb.js` keyed by rounded coordinates (~47 KB per place). Loads only after the forecast;
-fails silently (card hidden). Maths in `utils/climateStats.js`. Moon rise/set are computed
+fails silently (card hidden). Maths in `utils/climateStats.js`. The same cached history drives
+the climate outlook (`screens/ClimateScreen.js`, "Explore the year" on that card): typical weather
+for any of the next 12 months, maths in `utils/climateOutlook.js`. It's climate, not a forecast —
+keep saying so in the UI. Use `cloud_cover_mean` for sky type, not the archive's `weather_code`
+(the server builds that from hourly data: 2–25 s instead of ~10 ms). Moon rise/set are computed
 on the phone (`utils/moonTimes.js`), no API.
 
 City search: offline list first (`utils/citySearch.js`, typo-tolerant), Open-Meteo online search

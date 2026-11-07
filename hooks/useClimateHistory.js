@@ -6,7 +6,8 @@ import { fetchHistory } from "../services/historyApi";
  * useClimateHistory — 10 years of daily weather for a place.
  *
  *  - Cache first: history doesn't change, so a saved copy is used as-is.
- *  - Re-downloaded about once a year (so "this day last year" is always in it).
+ *  - Re-downloaded about once a year (so "this day last year" is always in it),
+ *    or sooner if the saved copy is an older format (no cloud cover).
  *    An old copy still shows meanwhile.
  *  - Only starts once the forecast has loaded (`todayIso` set), so it never
  *    slows down the main screen.
@@ -35,7 +36,7 @@ export default function useClimateHistory(lat, lng, todayIso) {
                     setHistory(cached.data);
                     setStatus("ready");
                 }
-                if (cached && Date.now() - cached.timestamp < REFRESH_MS) {
+                if (cached?.data.cloud && Date.now() - cached.timestamp < REFRESH_MS) {
                     console.log("[history] using cache for", place);
                     return;
                 }

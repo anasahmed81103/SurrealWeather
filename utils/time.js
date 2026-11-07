@@ -56,6 +56,18 @@ export const formatDay = (d) => DAYS[d.getUTCDay()].slice(0, 3);
 /** "Oct 19" */
 export const formatDayMonth = (d) => `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`;
 
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July",
+    "August", "September", "October", "November", "December"];
+
+/** (2027, 7) → "July 2027" */
+export const formatMonthYear = (year, month) => `${MONTH_NAMES[month - 1]} ${year}`;
+
+/** (2027, 7) → "Jul '27" */
+export const formatMonthShort = (year, month) => `${MONTHS[month - 1]} '${String(year).slice(2)}`;
+
+/** (2024, 6, 24) → "Jun 24, 2024" */
+export const formatShortDate = (year, month, day) => `${MONTHS[month - 1]} ${day}, ${year}`;
+
 /** "Monday, Oct 19" */
 export const formatDate = (d) =>
     `${DAYS[d.getUTCDay()]}, ${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`;

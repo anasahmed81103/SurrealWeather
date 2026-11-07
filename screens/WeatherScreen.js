@@ -16,6 +16,7 @@ import { getMoonPhase } from "../utils/moonPhase";
 import WeatherScene from "../components/scene/WeatherScene";
 import CityHeader from "../components/CityHeader";
 import CityPicker from "../components/CityPicker";
+import ClimateScreen from "./ClimateScreen";
 import CurrentWeather from "../components/CurrentWeather";
 import HourlyChart from "../components/HourlyChart";
 import DailyForecast from "../components/DailyForecast";
@@ -36,6 +37,7 @@ import { colors, fonts } from "../components/theme";
  *      then the detail tiles and the sun/moon arcs)
  *     (cards fade in one after another)
  *   CityPicker          (bottom sheet)
+ *   ClimateScreen       (full-screen outlook, from "Explore the year")
  *
  * All data/state comes from useCityWeather().
  * ------------------------------------------------------------------ */
@@ -52,6 +54,7 @@ export default function WeatherScreen() {
     const insets = useSafeAreaInsets();
     const nowMs = useMinuteTick();
     const [pickerOpen, setPickerOpen] = useState(false);
+    const [outlookOpen, setOutlookOpen] = useState(false);
     const { city, isHome, cities, weather, status, refreshing, refresh, selectCity, addPlace, removeCity, makeHome } =
         useCityWeather();
 
@@ -90,6 +93,7 @@ export default function WeatherScreen() {
     const onRefresh = () => { tap(); refresh(); };
     const onToggleSound = () => { tap(); toggleSound(); };
     const openPicker = () => { tap(); setPickerOpen(true); };
+    const openOutlook = () => { tap(); setOutlookOpen(true); };
 
     return (
         <View style={styles.screen}>
@@ -132,7 +136,7 @@ export default function WeatherScreen() {
                     </FadeIn>
                     {historyStatus !== "none" && (
                         <FadeIn delay={STAGGER_MS * 3}>
-                            <HistoryCard history={history} daily={weather.daily} />
+                            <HistoryCard history={history} daily={weather.daily} onExplore={openOutlook} />
                         </FadeIn>
                     )}
                     <FadeIn delay={STAGGER_MS * 4}>
@@ -156,6 +160,8 @@ export default function WeatherScreen() {
                 onRemove={removeCity}
                 onMakeHome={makeHome}
             />
+
+            <ClimateScreen visible={outlookOpen} city={city} cities={cities} onClose={() => setOutlookOpen(false)} />
 
             <StatusBar style="light" />
         </View>

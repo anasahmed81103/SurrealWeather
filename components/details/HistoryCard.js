@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import GlassCard from "../GlassCard";
 import HistoryBars from "./HistoryBars";
@@ -14,6 +14,7 @@ import { colors, fonts } from "../theme";
  *   +3°  warmer than usual for Nov 3        ← headline
  *   [ bars: Nov 3 of each year + today ]
  *   Last year · Record · Rain              ← three short facts
+ *   Explore the year ›                     ← opens the climate outlook
  *
  * While history downloads (history = null) it shows a same-size placeholder,
  * so the cards below don't jump when it arrives.
@@ -38,7 +39,7 @@ function Fact({ icon, children }) {
     );
 }
 
-export default function HistoryCard({ history, daily }) {
+export default function HistoryCard({ history, daily, onExplore }) {
     if (!history) {
         return (
             <GlassCard title="On this day" icon="history">
@@ -87,6 +88,11 @@ export default function HistoryCard({ history, daily }) {
                         : `Rained on ${day} in ${stats.rainyYears} of the last ${stats.years.length} years`}
                 </Fact>
             </View>
+
+            <TouchableOpacity onPress={onExplore} style={styles.explore} activeOpacity={0.7}>
+                <Text style={styles.exploreText}>Explore the year</Text>
+                <MaterialCommunityIcons name="chevron-right" size={18} color={colors.accent} />
+            </TouchableOpacity>
         </GlassCard>
     );
 }
@@ -98,8 +104,18 @@ const styles = StyleSheet.create({
     headline: { fontFamily: fonts.medium, fontSize: 15, color: colors.text },
     sub: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.textSoft, marginTop: 2 },
     facts: { marginTop: 8 },
-    // ≈ the real card's body height (headline + bars + facts)
-    waiting: { height: 240, textAlignVertical: "center", textAlign: "center", fontFamily: fonts.regular, fontSize: 13, color: colors.textFaint },
+    // ≈ the real card's body height (headline + bars + facts + explore link)
+    waiting: { height: 280, textAlignVertical: "center", textAlign: "center", fontFamily: fonts.regular, fontSize: 13, color: colors.textFaint },
     fact: { flexDirection: "row", alignItems: "center", marginTop: 6 },
     factText: { flex: 1, marginLeft: 8, fontFamily: fonts.regular, fontSize: 13, color: colors.textSoft },
+    explore: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 14,
+        paddingTop: 12,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: colors.glassBorder,
+    },
+    exploreText: { fontFamily: fonts.medium, fontSize: 14, color: colors.accent },
 });
