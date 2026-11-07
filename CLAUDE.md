@@ -60,7 +60,8 @@ hooks/                  # state + reusable logic (useCityWeather, suggestions, d
 components/             # UI pieces (header, cards, picker) + theme.js (fonts, colours)
 components/details/     # detail tiles (sun arc, wind, gauges, moon)
 components/scene/       # animated weather background layers (SVG + Animated)
-widgets/                # Android home-screen widget (layout, painted SVG sky, data, task handler, updateWidget)
+widgets/                # Android home-screen widgets (layouts, painted SVG sky, data, task handler, updateWidget)
+modules/widget-clock/   # local native module: Clock & Weather widgets (Kotlin + XML, TextClock)
 services/               # API calls (http, weatherApi, geocodingApi)
 db/                     # local storage
 utils/                  # pure helpers (weather codes, time, offline city search)
@@ -98,6 +99,16 @@ Android widget (`react-native-android-widget`, config in app.json) needs a devel
 reads the same SQLite cache as the app, and the app calls `updateWidget()` after saving weather.
 The home city follows the phone: `hooks/homeLocation.js` re-checks location on each open
 (no permission popup after the first launch).
+
+Three widgets, all registered in app.json (so the library handles add / resize / 30-min refresh):
+- **Weather**: drawn by the library as one picture (`widgets/WeatherWidget.js`).
+- **ClockWeather / ClockWeatherClear**: a picture can't show a live clock (redrawn at most every
+  30 min), so these use a native layout with Android's `TextClock` (it keeps time by itself).
+  JS prepares the weather (`widgets/clockWidget.js`), the local Expo module
+  `modules/widget-clock` (Kotlin, autolinked) draws it. The task handler must NOT call
+  `renderWidget` for them. Sky art for the clock uses `CLOCK_ART_PLACE` (smaller, higher).
+- `android/` is generated (git-ignored): native code lives only in `modules/`.
+- Widget picker previews (`assets/widget-preview-*.png`) are rendered from `widgets/widgetSky.js`.
 
 - Use `react-native-safe-area-context` (not React Native's deprecated `SafeAreaView`).
 - Animations: React Native `Animated` with `useNativeDriver: true` (see `components/scene/useLoop.js`).

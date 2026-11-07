@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text styles for the Clock & Weather widget. Android 8+: the app's Outfit font (same as the rest of the app). -->
+<resources>
+    <!-- White text with a soft shadow, readable on the sky and on any wallpaper -->
+    <style name="WidgetClock">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:shadowColor">#99000000</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">8</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:fontFamily">@font/outfit_regular</item>
+    </style>
+
+    <style name="WidgetClock.Time">
+        <item name="android:textSize">58sp</item>
+        <item name="android:fontFamily">@font/outfit_extralight</item>
+    </style>
+
+    <style name="WidgetClock.Date">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#E6FFFFFF</item>
+        <item name="android:layout_marginTop">2dp</item>
+    </style>
+
+    <style name="WidgetClock.Temp">
+        <item name="android:textSize">36sp</item>
+        <item name="android:fontFamily">@font/outfit_extralight</item>
+    </style>
+
+    <!-- maxWidth stops a long condition / city squeezing the clock -->
+    <style name="WidgetClock.Detail">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">#E6FFFFFF</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxWidth">170dp</item>
+    </style>
+</resources>

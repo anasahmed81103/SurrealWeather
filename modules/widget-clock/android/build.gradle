@@ -1,0 +1,22 @@
+// widget-clock — local Expo module (autolinked from /modules) that draws the
+// Clock & Weather home-screen widgets with a real, self-updating TextClock.
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.widgetclock'
+version = '1.0.0'
+
+android {
+  namespace "expo.modules.widgetclock"
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+dependencies {
+  // Same SVG renderer react-native-android-widget already ships, so no extra size
+  implementation 'com.caverock:androidsvg-aar:1.4'
+}

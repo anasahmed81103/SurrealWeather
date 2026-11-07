@@ -70,42 +70,66 @@ ${radial("fogSun", "#FFF3D6", 0.55)}${radial("mist", "#FFFFFF", 0.5)}
 </defs>`;
 }
 
+// Where the weather art sits: anchor (fractions of width / height) and cloud size (of height).
+// Weather widget: big, right side. Clock widget: smaller and higher, clear of the temperature.
+const ART_PLACE = { x: 0.78, y: 0.32, size: 0.36 };
+// Clock: the tallest art (rain: cloud top → last drop ≈ 2.3 × size) must end above the
+// temperature (~45% down), and the sun must clear the top edge → size 0.18, anchor 20% down.
+export const CLOCK_ART_PLACE = { x: 0.82, y: 0.2, size: 0.18 };
+
 // The weather layer for each kind. (x, y) is the art's anchor on the right side.
-function weatherArt(kind, night, w, h) {
-    const x = w * 0.78;
-    const y = h * 0.32;
-    const s = h * 0.36; // cloud size scales with the widget height
+// soft = false leaves out stars and the big glows (for the icon on transparent widgets,
+// where a glow cut off at the icon's edge would show as a hard line).
+// place: where the art sits and how big (fractions of the card), see ART_PLACE.
+function weatherArt(kind, night, w, h, soft = true, place = ART_PLACE) {
+    const halo = soft ? glow : () => "";
+    const dim = night && soft; // dark night clouds on the sky; the icon keeps them light so they show on any wallpaper
+    const x = w * place.x;
+    const y = h * place.y;
+    const s = h * place.size; // cloud size scales with the widget height
+    const u = s / 0.36; // unit for sun / moon / glow sizes, so they shrink with the art
     const sunOrMoon = night
-        ? glow(x + s * 0.5, y - s * 0.2, h * 0.75, "moonGlow") +
-          `<circle cx="${n(x + s * 0.5)}" cy="${n(y - s * 0.2)}" r="${n(h * 0.13)}" fill="#F3EFDC"/>`
-        : glow(x + s * 0.5, y - s * 0.3, h * 1.0, "sunGlow") +
-          `<circle cx="${n(x + s * 0.5)}" cy="${n(y - s * 0.3)}" r="${n(h * 0.17)}" fill="#FFF4C8"/>`;
-    const stars = night
+        ? halo(x + s * 0.5, y - s * 0.2, u * 0.75, "moonGlow") +
+          `<circle cx="${n(x + s * 0.5)}" cy="${n(y - s * 0.2)}" r="${n(u * 0.13)}" fill="#F3EFDC"/>`
+        : halo(x + s * 0.5, y - s * 0.3, u * 1.0, "sunGlow") +
+          `<circle cx="${n(x + s * 0.5)}" cy="${n(y - s * 0.3)}" r="${n(u * 0.17)}" fill="#FFF4C8"/>`;
+    const stars = night && soft
         ? STARS.map(([fx, fy, r]) => `<circle cx="${n(fx * w)}" cy="${n(fy * h)}" r="${r}" fill="#FFFFFF" opacity="0.8"/>`).join("")
         : "";
-    const darkCloud = night ? "night" : "dark";
+    const darkCloud = dim ? "night" : soft ? "dark" : "grey"; // icon: lighter storm clouds, visible on dark wallpapers
 
     switch (kind) {
         case "clear":
             return stars + sunOrMoon;
         case "partly":
-            return stars + sunOrMoon + cloud(x - s * 0.2, y + s * 0.55, s, night ? "night" : "light", 0.95);
+            return stars + sunOrMoon + cloud(x - s * 0.2, y + s * 0.55, s, dim ? "night" : "light", 0.95);
         case "cloudy":
             return (
-                cloud(x + s * 0.5, y - s * 0.1, s * 0.9, night ? "night" : "grey", 0.8) +
-                cloud(x - s * 0.4, y + s * 0.5, s * 1.1, night ? "night" : "light", 0.9)
+                cloud(x + s * 0.5, y - s * 0.1, s * 0.9, dim ? "night" : "grey", 0.8) +
+                cloud(x - s * 0.4, y + s * 0.5, s * 1.1, dim ? "night" : "light", 0.9)
             );
         case "fog": {
             // A pale sun / moon behind the veil, a faint cloud, soft banks of mist and ground haze
             const lx = x + s * 0.5;
             const ly = y - s * 0.25;
+            if (!soft) {
+                // Icon version: pale sun / moon behind a cloud, three mist bars below
+                const bars = [[0.62, 0.95, 2.2], [0.8, 1.35, 2.5], [0.98, 1.0, 2.1]]
+                    .map(([fy, dx, len]) => `<rect x="${n(x - s * dx)}" y="${n(h * fy)}" width="${n(s * len)}" height="${n(h * 0.06)}" rx="${n(h * 0.03)}"/>`)
+                    .join("");
+                return (
+                    `<circle cx="${n(lx)}" cy="${n(ly)}" r="${n(u * 0.14)}" fill="${night ? "#E6EAF5" : "#FFF3D6"}" opacity="0.8"/>` +
+                    cloud(x - s * 0.15, y + s * 0.2, s * 0.95, "grey", 0.9) +
+                    `<g fill="#E8EDF3" opacity="0.85">${bars}</g>`
+                );
+            }
             const banks = MIST_BANKS.map(([fx, fy, rx, ry, o]) =>
                 `<ellipse cx="${n(fx * w)}" cy="${n(fy * h)}" rx="${n(rx * w)}" ry="${n(ry * h)}" fill="url(#mist)" opacity="${o}"/>`
             ).join("");
             return (
-                glow(lx, ly, h * 0.8, night ? "moonGlow" : "fogSun") +
-                `<circle cx="${n(lx)}" cy="${n(ly)}" r="${n(h * 0.14)}" fill="${night ? "#E6EAF5" : "#FFF8E6"}" opacity="${night ? 0.4 : 0.6}"/>` +
-                cloud(x - s * 0.15, y + s * 0.2, s * 0.95, night ? "night" : "grey", 0.4) +
+                halo(lx, ly, u * 0.8, night ? "moonGlow" : "fogSun") +
+                `<circle cx="${n(lx)}" cy="${n(ly)}" r="${n(u * 0.14)}" fill="${night ? "#E6EAF5" : "#FFF8E6"}" opacity="${night ? 0.4 : 0.6}"/>` +
+                cloud(x - s * 0.15, y + s * 0.2, s * 0.95, dim ? "night" : "grey", 0.4) +
                 `<g opacity="${night ? 0.65 : 1}">${banks}</g>` +
                 `<rect y="${n(h * 0.5)}" width="${w}" height="${n(h * 0.5)}" fill="url(#fogFloor)"/>`
             );
@@ -123,8 +147,8 @@ function weatherArt(kind, night, w, h) {
                 .map(([px, py]) => `${n(x + px * s)},${n(y + py * s)}`)
                 .join(" ");
             return (
-                (thunder ? glow(x, y + s * 0.9, h * 0.6, "boltGlow") : "") +
-                `<g stroke="#BFE3FF" stroke-width="${n(h * 0.014)}" stroke-linecap="round" opacity="0.6">${drops}</g>` +
+                (thunder ? halo(x, y + s * 0.9, u * 0.6, "boltGlow") : "") +
+                `<g stroke="#BFE3FF" stroke-width="${n(u * 0.014)}" stroke-linecap="round" opacity="0.6">${drops}</g>` +
                 cloud(x + s * 0.55, y - s * 0.15, s * 0.85, darkCloud, 0.85) +
                 cloud(x - s * 0.3, y + s * 0.35, s * 1.1, darkCloud, 0.95) +
                 (thunder ? `<polygon fill="#FFE27A" points="${boltPoints}"/>` : "")
@@ -134,12 +158,12 @@ function weatherArt(kind, night, w, h) {
             const flakes = Array.from({ length: 12 }, (_, i) => {
                 const fx = x - s * 1.2 + (i % 6) * s * 0.45 + (i > 5 ? s * 0.2 : 0);
                 const fy = y + s * 0.95 + (i > 5 ? s * 0.4 : 0) + (i % 2) * s * 0.12;
-                return `<circle cx="${n(fx)}" cy="${n(fy)}" r="${n(h * 0.018)}"/>`;
+                return `<circle cx="${n(fx)}" cy="${n(fy)}" r="${n(u * 0.018)}"/>`;
             }).join("");
             return (
                 `<g fill="#FFFFFF" opacity="0.85">${flakes}</g>` +
-                cloud(x + s * 0.5, y - s * 0.1, s * 0.85, night ? "night" : "grey", 0.85) +
-                cloud(x - s * 0.3, y + s * 0.4, s * 1.1, night ? "night" : "light", 0.95)
+                cloud(x + s * 0.5, y - s * 0.1, s * 0.85, dim ? "night" : "grey", 0.85) +
+                cloud(x - s * 0.3, y + s * 0.4, s * 1.1, dim ? "night" : "light", 0.95)
             );
         }
         default:
@@ -151,16 +175,41 @@ function weatherArt(kind, night, w, h) {
  * @param {string} kind     clear | partly | cloudy | fog | rain | snow | thunder
  * @param {boolean} night
  * @param {number} w, h     widget size in dp
+ * @param {object} place    where the art goes (ART_PLACE / CLOCK_ART_PLACE)
  * @returns {string} SVG markup
  */
-export function skySvg(kind, night, w = 320, h = 150, radius = 24) {
+export function skySvg(kind, night, w = 320, h = 150, radius = 24, place = ART_PLACE) {
     const sky = (SKIES[kind] || SKIES.cloudy)[night ? 1 : 0];
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
 ${defs(sky, w, h, radius)}
 <g clip-path="url(#card)">
 <rect width="${w}" height="${h}" fill="url(#sky)"/>
 ${glow(w * 0.1, h * 1.05, h * 1.1, "haze")}
-${weatherArt(kind, night, w, h)}
+${weatherArt(kind, night, w, h, true, place)}
 ${glow(w * 0.12, h * 0.55, h * 0.9, "shade")}
 </g></svg>`;
+}
+
+/**
+ * Just the weather art (sun / moon / clouds / rain…), no sky and no glows:
+ * the icon for the transparent clock widget. Same drawing as the sky
+ * version, cropped (viewBox) to the area the art uses.
+ */
+// Crop per kind (viewBox x, y, w, h in the 200 × 100 drawing), so each icon is centred
+const ART_BOX = {
+    clear: [144, -10, 60, 60],
+    partly: [106, -4, 94, 80],
+    cloudy: [100, -2, 112, 78],
+    fog: [100, -4, 112, 108],
+};
+const ART_BOX_TALL = [102, -2, 110, 94]; // rain, snow, thunder (drops below the cloud)
+
+export function artSvg(kind, night) {
+    const w = 200;
+    const h = 100;
+    const [bx, by, bw, bh] = ART_BOX[kind] || ART_BOX_TALL;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${bw}" height="${bh}" viewBox="${bx} ${by} ${bw} ${bh}">
+${defs((SKIES[kind] || SKIES.cloudy)[night ? 1 : 0], w, h, 0)}
+${weatherArt(kind, night, w, h, false)}
+</svg>`;
 }

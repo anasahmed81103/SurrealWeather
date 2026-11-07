@@ -71,6 +71,30 @@
               "resizeMode": "horizontal|vertical",
               "previewImage": "./assets/widget-preview.png",
               "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "ClockWeather",
+              "label": "Clock & Weather",
+              "description": "Time, date and the weather in your home city",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-preview-clock.png",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "ClockWeatherClear",
+              "label": "Clock & Weather (clear)",
+              "description": "Time, date and weather on a transparent background",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-preview-clock-clear.png",
+              "updatePeriodMillis": 1800000
             }
           ]
         }
