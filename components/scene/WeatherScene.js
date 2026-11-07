@@ -13,21 +13,24 @@ import Snow from "./Snow";
 import Lightning from "./Lightning";
 import Fog from "./Fog";
 import FogLight from "./FogLight";
+import Skyline from "./skyline/Skyline";
 
 /* ------------------------------------------------------------------
  * WeatherScene — the full-screen animated background.
  * Stacks layers back-to-front based on the weather and time of day:
  *   sky → stars → sun/moon (or veiled light in fog) → clouds
- *   → fog/rain/snow → lightning
+ *   → city skyline (landmark) → fog/rain/snow → lightning
  *   → drops on the glass → soft vignette (keeps text readable).
  *
  * Props: code (WMO), phase (dawn|day|dusk|night), wind (km/h),
- *        moonPhase (0–1), southern (hemisphere, flips the moon)
+ *        moonPhase (0–1), southern (hemisphere, flips the moon),
+ *        landmark ({ id, seed } from skyline/index.js), groundOffset (px the
+ *        scene reaches below the screen, so the skyline sits on the real bottom)
  *
  * memo(): only re-renders when these props change, not on every clock tick.
  * ------------------------------------------------------------------ */
 
-function WeatherScene({ code, phase, wind = 10, moonPhase = 0.5, southern = false }) {
+function WeatherScene({ code, phase, wind = 10, moonPhase = 0.5, southern = false, landmark = null, groundOffset = 0 }) {
     const { kind, intensity } = getWeatherInfo(code);
     const isNight = phase === "night";
     const skyVisible = kind === "clear" || kind === "partly";
@@ -45,6 +48,8 @@ function WeatherScene({ code, phase, wind = 10, moonPhase = 0.5, southern = fals
                 // key → fresh clouds when the weather or time of day changes
                 <Clouds key={`${kind}-${phase}`} count={CLOUD_COUNT[kind]} colors={getCloudColors(kind, phase)} />
             )}
+
+            {landmark && <Skyline landmark={landmark} kind={kind} phase={phase} bottom={groundOffset} />}
 
             {kind === "fog" && <Fog phase={phase} />}
             {wet && <Rain intensity={kind === "thunder" ? 3 : intensity} wind={wind} />}

@@ -60,6 +60,7 @@ hooks/                  # state + reusable logic (useCityWeather, suggestions, d
 components/             # UI pieces (header, cards, picker) + theme.js (fonts, colours)
 components/details/     # detail tiles (sun arc, wind, gauges, moon)
 components/scene/       # animated weather background layers (SVG + Animated)
+components/scene/skyline/ # landmark skylines on the horizon (one file per landmark)
 widgets/                # Android home-screen widgets (layouts, painted SVG sky, data, task handler, updateWidget)
 modules/widget-clock/   # local native module: Clock & Weather widgets (Kotlin + XML, TextClock)
 services/               # API calls (http, weatherApi, geocodingApi)
@@ -85,6 +86,17 @@ for any of the next 12 months, maths in `utils/climateOutlook.js`. It's climate,
 keep saying so in the UI. Use `cloud_cover_mean` for sky type, not the archive's `weather_code`
 (the server builds that from hourly data: 2–25 s instead of ~10 ms). Moon rise/set are computed
 on the phone (`utils/moonTimes.js`), no API.
+
+Skyline: each place gets a skyline on the horizon (`components/scene/skyline/`), picked offline
+from the coordinates (`utils/countryAt.js`: nearest bundled city → country). In `skyline/index.js`:
+a country landmark (`BY_COUNTRY`, one file each), else its region's style (`regions/regionOf.js` →
+`regions/*.js`, built from a seed of the coordinates so each city's town differs), else soft hills
+(open sea). Pieces: `shapes.js` (buildings, rows, windows), `ornaments.js` (domes, minarets, spires,
+pagodas...), `nature.js` (trees, palms). All plain SVG paths in a 400×300 box, clockwise (holes run
+the other way), no images. Colours are never fixed: `skylineColors.js` mixes the sky's horizon colour
+with dark ink per time of day + weather. Only the lights animate (opacity, native driver);
+floodlights come on fully only at night, so sunsets stay a dark silhouette. Preview with
+`DEBUG_SCENE = { code: 0, phase: "dusk", landmark: "eiffelTower" }` (or a region id, e.g. "europeTown").
 
 City search: offline list first (`utils/citySearch.js`, typo-tolerant), Open-Meteo online search
 only as a debounced backup for small towns.

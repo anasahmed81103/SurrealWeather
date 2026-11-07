@@ -14,6 +14,7 @@ import { getAmbience, getMusic } from "../utils/ambience";
 import { getMoonPhase } from "../utils/moonPhase";
 
 import WeatherScene from "../components/scene/WeatherScene";
+import { pickLandmark } from "../components/scene/skyline";
 import CityHeader from "../components/CityHeader";
 import CityPicker from "../components/CityPicker";
 import ClimateScreen from "./ClimateScreen";
@@ -44,6 +45,7 @@ import { colors, fonts } from "../components/theme";
 
 // DEV ONLY: preview any scene regardless of the real weather, e.g.
 //   { code: 95, phase: "night" }   (codes: utils/weatherCodes.js)
+//   { code: 0, phase: "dusk", landmark: "eiffelTower" }   (ids: LANDMARKS / REGIONS in components/scene/skyline/index.js)
 // Keep this null in normal use.
 const DEBUG_SCENE = null;
 
@@ -68,6 +70,11 @@ export default function WeatherScreen() {
     const sceneCode = DEBUG_SCENE?.code ?? weather?.current.weather_code ?? 3; // overcast while nothing is loaded
     const scenePhase = DEBUG_SCENE?.phase ?? phase;
     const southern = (weather?.latitude ?? 0) < 0;
+    // Landmark on the horizon (Faisal Mosque, Eiffel Tower...) — picked offline from the coordinates
+    const landmark = useMemo(
+        () => (DEBUG_SCENE?.landmark ? { id: DEBUG_SCENE.landmark, seed: 7 } : pickLandmark(city?.lat, city?.lng)),
+        [city?.lat, city?.lng]
+    );
     // 10-year "on this day" history — loads after the forecast, hidden until ready
     const { history, status: historyStatus } = useClimateHistory(city?.lat, city?.lng, weather?.daily.time[0]);
     const moonPhase = useMemo(() => getMoonPhase(new Date(nowMs)), [Math.floor(nowMs / 3600000)]); // hourly is plenty
@@ -104,6 +111,8 @@ export default function WeatherScreen() {
                     wind={weather?.current.wind_speed_10m}
                     moonPhase={moonPhase}
                     southern={southern}
+                    landmark={landmark}
+                    groundOffset={PARALLAX}
                 />
             </Animated.View>
 
