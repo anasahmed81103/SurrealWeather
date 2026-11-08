@@ -9,7 +9,8 @@ Files in this folder:
 |---|---|---|
 | `graphics/icon-512.png` | Store listing → App icon | 512×512 PNG, full square (Google rounds the corners) |
 | `graphics/feature-graphic-1024x500.png` | Store listing → Feature graphic | 1024×500 PNG, no transparency |
-| `screenshots/01…07.png` | Store listing → Phone screenshots | 7 × 1080×1920 PNG (upload in this order) |
+| `screenshots/01…07.png` | Store listing → Phone screenshots | 1.0 set: 7 × 1080×1920 PNG |
+| `screenshots/08…14.png` | Store listing → Phone screenshots | 1.1 set (skylines, moon, history, outlook, widgets): 7 × 1080×1920 PNG |
 | `privacy-policy.html` | App content → Privacy policy (needs a public URL, see below) | |
 | the `.aab` file (sent separately) | Testing → Internal testing → Create release | |
 
@@ -22,51 +23,64 @@ Files in this folder:
 Surreal Weather: Live Forecast
 ```
 
+**Phone screenshots** (Play shows at most 8; the first 2–3 appear in search). Order for 1.1:
+`08-skyline`, `10-world`, `09-night`, `03-rain`, `12-history`, `13-outlook`, `11-moon`, `14-widgets`
+
 **Short description** (max 80)
 ```
-Weather forecast with animated skies, ambient sounds and a home screen widget.
+Beautiful animated weather: your city's skyline, sun & moon, 10 years of history
 ```
 
 **Full description** (max 4000)
 ```
-Surreal Weather turns your daily weather forecast into something you can feel.
+Live weather forecast with animated skies, your city's skyline on the horizon, a weather clock widget, moonrise & moonset and 10 years of weather history.
 
-Open the app and the sky comes alive. The sun glows, rain streaks down your screen, snow drifts softly, thunderstorms flash with lightning, fog rolls in, and on clear nights the stars twinkle under a moon that shows its real phase. Every scene follows your city's actual sunrise and sunset, through dawn, day, golden dusk and night, so checking the weather feels like looking out of a window.
+Surreal Weather turns your daily forecast into something you can feel. Open the app and the sky comes alive: the sun glows, rain streaks down your screen, snow drifts, thunderstorms flash with lightning, fog rolls in, and on clear nights the stars twinkle under a moon in its real phase. And on the horizon stands your city.
 
-It's a beautiful weather app that is also simple, fast and accurate: current conditions, an hourly forecast, a 7-day forecast and all the details you need, at a glance.
+YOUR CITY ON THE HORIZON (NEW)
+• Every place gets its own skyline: the Eiffel Tower in Paris, the Taj Mahal in India, the Faisal Mosque in Pakistan, Big Ben in London, the Burj Khalifa in Dubai, the Makkah Clock Tower, the Blue Mosque in Istanbul, the Pyramids of Egypt, Mt Fuji in Japan, Shanghai, the Colosseum in Rome, Christ the Redeemer in Rio and the Opera House in Sydney
+• Everywhere else gets a local skyline: old European towns and cathedrals, mosques and minarets, pagodas, temples and colonial churches
+• It lives in the weather: a dark silhouette at sunset, city lights and floodlit landmarks at night, fading into fog, mist and rain
+
+WEATHER CLOCK WIDGETS (NEW)
+• Clock & Weather widget: a live clock and date with today's weather, on a painted sky
+• A transparent version that blends into any wallpaper
+• The classic weather widget with temperature, conditions and today's high and low
+• Updates on its own and opens the app with a tap
+
+MOON, HISTORY AND THE YEAR AHEAD (NEW)
+• Moonrise and moonset times with a live moon path across the sky, calculated on your phone
+• On this day: historical weather for today's date over the last 10 years. Is it warmer than usual? What's the record? How often did it rain?
+• Climate outlook: what any month up to a year ahead is usually like, with typical temperatures and sunny vs rainy days. Great for planning trips, weddings and holidays
 
 ANIMATED, LIVE WEATHER
-• Animated weather scenes for clear skies, clouds, rain, snow, thunderstorms and fog
-• Dawn, day, dusk and night skies that match the real local time in each city
-• Light rain, heavy rain and snow that change with how hard it's actually falling
-• Soft ambient sounds: birdsong on sunny days, crickets at night, wind, rain and distant thunder, with a gentle tune for calm moments. One tap to mute.
+• Animated scenes for clear skies, clouds, rain, snow, thunderstorms and fog
+• Dawn, day, golden dusk and night skies that follow your city's real sunrise and sunset
+• Light rain, heavy rain and snow that match how hard it's actually falling
+• Relaxing weather sounds: birdsong, crickets at night, wind, rain and distant thunder, with a gentle tune for calm moments. One tap to mute.
 
-ACCURATE FORECASTS AT A GLANCE
-• Current temperature, "feels like" temperature and today's high and low
-• A one-line summary of what's coming next, like "Rain likely around 7 PM" or "Cooling to 7° by 4 AM"
-• Hourly forecast for the next 24 hours, with a temperature chart and chance of rain
-• 7-day weather forecast with daily highs, lows and rain chances
-• Sunrise and sunset times with a live sun path
+ACCURATE FORECAST AT A GLANCE
+• Current temperature, feels like, and today's high and low
+• A one-line summary of what's next, like "Rain likely around 7 PM"
+• Hourly forecast for the next 24 hours with a temperature chart and chance of rain
+• 7 day forecast with daily highs, lows and rain chances
+• Sunrise and sunset with a live sun path
 • Wind speed and direction, humidity, UV index and moon phase
 
 LOCAL WEATHER, AUTOMATICALLY
-• Finds your city from your location and shows your local weather right away
-• Travelling? Your home city follows you to the new place
-• Save cities around the world and switch between them in a tap
-• Fast, typo-tolerant city search: 11,000+ cities work even offline, and smaller towns are found online
-
-HOME SCREEN WEATHER WIDGET
-• A weather widget for your home city, with a painted sky that changes with the weather
-• Shows the temperature, conditions and today's high and low
-• Updates on its own, and opens the full app with a tap
+• Finds your city from your location and shows local weather right away
+• Travelling? Your home city follows you
+• Save cities worldwide and switch in a tap
+• Fast, typo-tolerant city search: 11,000+ cities work offline, smaller towns are found online
 
 LIGHT, FAST AND PRIVATE
 • No account, no sign-up, no ads and no tracking
+• Small download, smooth even on older phones
 • Your cities and weather are stored on your phone
-• Location is only used to find your city, and only while the app is open
-• Smart caching keeps data use and battery use low
+• Location is only used to find your city, only while the app is open
+• Smart caching keeps data and battery use low
 
-Whether you're planning your commute, checking if you need an umbrella, or just want to watch the rain fall at night, Surreal Weather makes the forecast something to look forward to.
+Whether you're checking if you need an umbrella, planning next month's trip, or just want to watch the rain fall over your city at night, Surreal Weather makes the forecast something to look forward to.
 
 Weather data by Open-Meteo.com · City data by GeoNames
 ```
@@ -122,7 +136,17 @@ Why "Shared: No": coordinates go to weather and geocoding services that process 
 
 ---
 
-## Release notes (first release, "What's new")
+## Release notes 1.1 ("What's new", max 500)
+```
+What's new in 1.1
+• Your city on the horizon: the Eiffel Tower, Taj Mahal, Faisal Mosque, Big Ben and more, plus local skylines everywhere. They glow at sunset and light up at night.
+• Moonrise & moonset: see where the moon is right now.
+• On this day: how today compares with the last 10 years.
+• Climate outlook: typical weather for any month, up to a year ahead.
+• Clock & Weather widgets: a live clock on your own sky.
+```
+
+## Release notes 1.0 (first release)
 ```
 Welcome to Surreal Weather! Animated live skies, ambient sounds, hourly and 7-day forecasts, and a home screen weather widget.
 ```
